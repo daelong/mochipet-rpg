@@ -11,7 +11,19 @@ import re
 import struct
 import sys
 import zlib
+import os
 from pathlib import Path
+
+
+def source_files(root: Path):
+    # Dependencies, caches and generated test/build output are not game source.
+    excluded = {'.git', '.godot', 'node_modules', '.pnpm-store', 'dist', 'build',
+                'exports', 'releases', 'test-results', 'playwright-report',
+                'coverage', '__pycache__', '.venv', 'venv'}
+    for folder, directories, names in os.walk(root):
+        directories[:] = [d for d in directories if d not in excluded]
+        for name in names:
+            yield Path(folder) / name
 
 
 def audit(root: Path) -> dict:
@@ -57,8 +69,8 @@ def audit(root: Path) -> dict:
     check('uninstall_no_recursive_delete_or_save_delete', 'RMDir /r' not in nsis_code and '$APPDATA' not in nsis_code and 'desktop-v041' not in nsis_code)
     check('developer_tests_gate_export', build.index('test_save_store.gd') < build.index('--export-release') and build.index('test_resources.gd') < build.index('--export-release'))
     check('export_excludes_developer_tools', 'tests/*,docs/*,packaging/*' in export and 'binary_format/embed_pck=false' in export)
-    check('no_user_save_data_bundled', not any(p.name in {'save.json','mochipet_desktop_save.json','owner.json'} for p in root.rglob('*') if p.is_file()))
-    check('no_executable_bundled_in_source', not any(p.suffix.lower() in {'.exe','.dll','.so','.dylib'} for p in root.rglob('*') if p.is_file()))
+    check('no_user_save_data_bundled', not any(p.name in {'save.json','mochipet_desktop_save.json','owner.json'} for p in source_files(root)))
+    check('no_executable_bundled_in_source', not any(p.suffix.lower() in {'.exe','.dll','.so','.dylib'} for p in source_files(root)))
     # Asset paths are fixed strings and whitelist identifiers, never save-derived paths.
     ids_match = re.search(r'const PET_IDS := (\[.*\])', save)
     ids = ast.literal_eval(ids_match.group(1)) if ids_match else []

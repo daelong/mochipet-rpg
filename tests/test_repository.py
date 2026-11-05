@@ -8,18 +8,22 @@ import csv
 import json
 import re
 import unittest
+import os
 from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 IGNORED_DIRS = {'.git', '.godot', 'build', 'dist', 'exports', 'releases',
-                '.venv', 'venv', '__pycache__', '.idea', '.vscode'}
+                '.venv', 'venv', '__pycache__', '.idea', '.vscode',
+                'node_modules', '.pnpm-store', 'test-results', 'playwright-report', 'coverage'}
 
 
 def source_files() -> list[Path]:
-    return sorted(p for p in ROOT.rglob('*')
-                  if p.is_file() and not any(x in IGNORED_DIRS
-                                             for x in p.relative_to(ROOT).parts))
+    files = []
+    for folder, directories, names in os.walk(ROOT):
+        directories[:] = [d for d in directories if d not in IGNORED_DIRS]
+        files.extend(Path(folder) / name for name in names)
+    return sorted(files)
 
 
 def read_csv(name: str) -> list[dict[str, str]]:

@@ -1,3 +1,34 @@
+# 웹 개발·검사·빌드
+
+Node.js 22.12 이상, pnpm 10.28.2가 필요합니다. Phase 1은 로컬 브라우저 저장만 사용하므로 DB·API·비밀값을 설정하지 않습니다.
+
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm test
+pnpm build
+pnpm exec playwright install chromium
+pnpm test:e2e
+```
+
+개발 주소는 `http://127.0.0.1:5173/`, 빌드 출력은 `apps/web/dist/`입니다. `pnpm --filter @mochi/web preview --port 4173`으로 빌드 결과를 확인할 수 있습니다. HTTPS 또는 localhost가 Web Locks에 필요하며, 기능이 없거나 다른 탭이 잠금을 보유하면 플레이와 저장을 차단합니다.
+
+```sh
+MOCHI_E2E_PRODUCTION=1 pnpm test:e2e
+```
+
+위 명령은 먼저 `pnpm build`한 뒤 실행합니다. Playwright가 4173에서 프로덕션 미리보기 서버를 시작하고 검사 종료 후 정리합니다. 기존 Chromium 실행 파일을 사용하려면 `PLAYWRIGHT_CHROMIUM_EXECUTABLE`에 해당 실행 파일 경로를 지정할 수 있습니다. 모바일 프로젝트는 Chromium의 터치 입력·모바일 뷰포트 검사이며 실제 Android/iOS 검사와 다릅니다.
+
+`pnpm build`는 리소스 경로 검사 → 웹 CSV 일치 검사 → 전체 TypeScript 타입 검사 → Vite 빌드를 수행합니다. CSV는 `pnpm catalogs`로 생성하고 `pnpm catalogs:check`로 확인합니다. 데이터 변경 시 5종의 `web-*.csv`도 함께 갱신하세요. `pnpm format`은 웹 소스의 서식만 정리합니다.
+
+Phaser가 프레임마다 좌표를 관리하고 공통 규칙 엔진을 호출합니다. Zustand는 상태 변화가 있을 때, 전투 중 최대 초당 5회 스냅샷을 UI로 전달합니다. 좌표는 React에 저장하지 않습니다. 탭 비활성화·재접속의 경과 시간을 보상으로 환산하지 않으며, 사냥은 재접속 시 OFF입니다.
+
+브라우저 저장 키는 `mochipet.web.v1`, `.previous`, `.damaged`, `.before-reset`입니다. 웹 테스트는 격리된 임시 브라우저 컨텍스트를 사용합니다. 실제 플레이 기록은 저장소 파일로 만들지 않습니다. 초기화는 사용자 확인 후 원본 백업 기록을 먼저 쓴 다음 진행합니다. 저장 공간 부족·브라우저 데이터 삭제·전원 손실까지 완전한 보관을 보장하지 않습니다.
+
+이번 웹 작업의 결과는 [변경 보고서](WEB_PHASE1.md), 다음 서버 단계는 [백엔드 계획](WEB_BACKEND_PLAN.md)에 있습니다.
+
+---
+
 # 개발·검사·빌드 안내
 
 ## 도구

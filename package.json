@@ -1,0 +1,36 @@
+{
+  "name": "mochipet-rpg",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @mochi/web dev",
+    "build": "pnpm assets:check && pnpm catalogs:check && pnpm typecheck && pnpm --filter @mochi/web build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "assets:check": "node tools/assets.mjs --check",
+    "catalogs": "node --import tsx tools/catalogs.ts",
+    "catalogs:check": "node --import tsx tools/catalogs.ts --check",
+    "format": "prettier --write apps/web/src apps/web/tests packages tools/catalogs.ts *.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "@types/node": "22.19.15",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "4.7.0",
+    "@tailwindcss/vite": "4.2.1",
+    "tailwindcss": "4.2.1",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vite": "6.4.1",
+    "vitest": "3.2.4",
+    "prettier": "3.8.1"
+  },
+  "type": "module"
+}

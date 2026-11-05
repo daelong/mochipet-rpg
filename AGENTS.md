@@ -4,7 +4,8 @@
 
 - Godot 4.7.2 Standard + GDScript, v0.4.1-review를 기준으로 한다.
 - 먼저 README.md, docs/PROJECT_STATUS.md, docs/DEVELOPMENT.md를 읽는다.
-- 게임 런타임은 scripts/*.gd, scenes/, assets/다. tests의 Python은 개발 도구다.
+- 보존된 Godot 런타임은 scripts/*.gd, scenes/, assets/다. 사용자 요청으로 추가한 웹 런타임은 apps/web, packages/shared, packages/game-data다. tests의 Python은 개발 도구다.
+- 웹 작업은 docs/WEB_PHASE1.md도 읽고 pnpm test, pnpm build와 해당 브라우저 검사를 수행한다. 웹 데이터 변경 시 pnpm catalogs로 docs/catalogs/web-*.csv도 갱신한다.
 - 이 저장소는 보안 인증본/실행 검증 완료본이 아니다. 미실행 검사를 통과라고 보고하지 않는다.
 
 ## 유지할 조건

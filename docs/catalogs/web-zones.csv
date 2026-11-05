@@ -1,0 +1,5 @@
+"id","name","unlock_level","monster_ids"
+"meadow","풀잎 초원","1","slime;mushroom"
+"forest","반짝 숲","3","bat;foxfire"
+"cave","바위 동굴","5","golem;shade"
+"moonhill","달빛 언덕","8","ghost;moon"

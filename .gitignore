@@ -66,3 +66,12 @@ __pycache__/
 venv/
 .pytest_cache/
 .coverage
+
+# Web workspace caches, generated bundles and local browser test artifacts.
+node_modules/
+.pnpm-store/
+**/dist/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo

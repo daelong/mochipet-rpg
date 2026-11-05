@@ -1,0 +1,5 @@
+{
+  "name": "@mochi/web", "version": "0.1.0", "private": true, "type": "module",
+  "scripts": {"dev": "vite --host 127.0.0.1", "build": "vite build", "preview": "vite preview --host 127.0.0.1"},
+  "dependencies": {"@mochi/shared": "workspace:*", "@mochi/game-data": "workspace:*", "react": "19.2.4", "react-dom": "19.2.4", "phaser": "3.90.0", "zustand": "5.0.11", "lucide-react": "0.577.0", "zod": "3.25.76"}
+}
