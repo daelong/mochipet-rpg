@@ -1,0 +1,5 @@
+id,name,unlock_level,monster_ids,monster_hp,monster_attack,xp_reward,base_coin_reward
+0,풀잎 초원,1,slime;mushroom,22,2,10,8
+1,반짝 숲,5,bat;foxfire,54,4,22,18
+2,바위 동굴,10,golem;shade,106,7,41,32
+3,달빛 언덕,15,ghost;moon,174,10,70,55

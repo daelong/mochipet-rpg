@@ -1,0 +1,11 @@
+{
+  "original_installer": "모찌펫RPG_v0.4_Windows_설치.exe",
+  "bytes": 10352640,
+  "sha256": "bae78a6e6bfc876ea4c8282911fee97532f99525f530c553caa4c05c1f4eefdc",
+  "PE_security_directory_offset": 0,
+  "PE_security_directory_size": 0,
+  "conclusion": "No embedded Authenticode certificate table",
+  "source_zip": "mochipet_oneclick_src/project.zip",
+  "source_zip_sha256": "0cbdf93c0c910a75400b3647274c16b3739149b175227f7f1395da892005444d",
+  "limits": "No antivirus scan or Windows execution. Original Go installer source was not available; only embedded game source was inspected."
+}

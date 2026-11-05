@@ -1,0 +1,1623 @@
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,4 +1,6 @@
+ .godot/
++build/
++__pycache__/
++*.pyc
++.DS_Store
+ *.tmp
+-*.log
+-.DS_Store
+--- a/README_한국어.md
++++ b/README_한국어.md
+@@ -1,54 +1,109 @@
+-# 모찌펫 RPG — Godot 데스크톱 실시간 사냥 (v0.4 프로토타입)
++# 모찌펫 RPG 0.4.1 — 보안·안정성 보완 소스 검토본
+ 
+-이번 버전은 Python/JXA가 아닌 **Godot 4.2 이상 + GDScript**로 만든 새 공통 프로젝트입니다.
+-**Windows와 macOS용 소스가 하나**이고, 펫과 몬스터가 같은 투명 데스크톱 레이어에 나타납니다.
++**이 ZIP은 Godot 프로젝트와 설치판 제작 소스입니다. 완성 EXE, 설치 프로그램 또는 보안 인증본이 아닙니다.**
++기존 v0.4 Windows 설치 파일을 실행할 필요는 없습니다. 이 소스의 변경은 기존 EXE를 자동으로 고치지 않습니다.
+ 
+-## 이 버전에 구현한 것
+-- 십이지신 12종 + MBTI 16종 = 총 28종 펫 선택
+-- 화면에서 펫의 걷기/대기/전투 동작 이미지 교체
+-- 화면 위에 등장하는 슬라임, 버섯, 박쥐, 여우불, 골렘, 그림자, 유령, 달빛 정령 (8종)
+-- **사냥 ON**: 선택한 사냥터의 몬스터가 화면 위에 생성 → 펫이 이동 → 근접 자동 공격 → 피해 숫자/HP바 → 처치 → 코인/경험치 획득
+-- **산책**: 몬스터 없이 화면 아래쪽 자유 이동
+-- 사냥터 4곳: 풀잎 초원(Lv1), 반짝 숲(Lv5), 바위 동굴(Lv10), 달빛 언덕(Lv15)
+-- 음식, 장난감, 공격/방어/민첩, 스킬 강화, 회복 간식 코인 상점
+-- 캐릭터마다 고유 **기본 스킬 이름** 1개, 공격 시 스킬 메시지 표시 (효과/연출은 향후 확장)
+-- 오프라인 레벨 상한 Lv20, JSON 자동 저장, 초기화
++## 현재 상태
+ 
+-## 실행하기 (개발용 실행)
+-1. 공식 웹사이트 https://godotengine.org/download 에서 **Godot 4.2 이상** 설치합니다 (Godot 4 최신 안정판 권장).
+-2. Godot 프로젝트 매니저 → **Import** → 이 폴더의 `project.godot` 선택.
+-3. 편집기에서 **F6 대신 F5(프로젝트 실행)** 클릭.
+-4. 캐릭터를 선택한 뒤 **⚔ 사냥**을 누르면 펫이 몬스터에게 걸어가 공격합니다.
+-5. **🗺 사냥터**에서 입장 가능 지역을 선택하세요.
+-6. **⚙ 메뉴**에서 데이터 초기화/종료가 가능합니다.
++- 기존 Godot v0.4 프로젝트를 기준으로 소스를 수정했습니다.
++- Python으로 실행한 32개 정적 정책/패키지 확인 항목과 PNG 400개 구조 검사를 통과했습니다.
++- 이 정적 검사는 코드에 특정 보호 장치가 있는지 및 파일 구성이 맞는지 확인하는 검사입니다. GDScript 실행이나 보안 감사가 아닙니다.
++- 현재 작업 환경에는 Godot 실행기, Windows 테스트 환경, NSIS가 없어 **GDScript 파싱·런타임 검사, EXE 내보내기, 설치/제거, 백신 검사, 바탕화면 창 동작은 실행 검증하지 못했습니다.**
++- `tests/test_save_store.gd`와 `tests/test_resources.gd`는 개발 환경에서 실행해야 할 테스트이며 여기에서 통과했다고 주장하지 않습니다.
++- 코드 서명·SmartScreen 평판은 별도입니다. 이 소스만으로 경고가 없어지지 않습니다.
+ 
+-**중요:** 이 ZIP은 **Godot 원본 프로젝트**이며 Windows EXE나 macOS APP 완성 실행 파일은 포함되지 않습니다. 각각의 플랫폼용 실행 파일은 Godot 편집기에서 `Project > Export`를 통해 내보낼 수 있습니다. 각 OS용 Export Template 설치와 실제 기기 테스트가 필요합니다.
++## 바뀐 점
+ 
+-## macOS에서 유의할 점
+-- 투명 창, 항상 위, 테두리 없는 창, 클릭 영역 전달은 macOS 버전과 창 관리 환경별로 동작이 달라질 수 있습니다.
+-- macOS 앱 배포 시 코드 서명/공증 관련 안내가 발생할 수 있습니다.
+-- 멀티 모니터는 현재 **기본 모니터(0)** 기준입니다.
+-- 먼저 개발용 실행으로 동작을 확인하세요.
++### 설치 / 보안
+ 
+-## Windows에서 유의할 점
+-- 화면을 덮는 투명한 최상위 창으로 실행됩니다. 메뉴 외 영역은 일부 클릭 통과되지만, 화면 하단 게임 구역은 클릭 입력을 받을 수 있습니다.
+-- 개발 중 작업에 방해되면 Godot 편집기에서 실행 중지(F8)하거나 앱을 종료하세요.
++기존 Go 기반 다운로드 설치기는 수정 EXE로 다시 제공하지 않습니다. 대체하는 `packaging/installer.nsi`는 **이미 내보낸 Godot 실행 파일과 리소스를 전부 포함하는 오프라인 설치 방식**입니다.
+ 
+-## 기술적 설계
+-- `scenes/Main.tscn`: 진입 씬
+-- `scripts/main.gd`: 캐릭터 선택, UI, 펫 이동, 몬스터 AI, 스킬 연출, 전투, 상점, 레벨업, 저장
+-- `assets/pets/<캐릭터ID>`: 28종 캐릭터의 2프레임 애니메이션
+-- `assets/monsters`: 8종 투명 배경 몬스터
+-- 저장: Godot의 `user://mochipet_desktop_save.json`
++- 일반 사용자 권한만 요청 (`RequestExecutionLevel user`).
++- 사용자 `LocalAppData\Programs`에 검토판을 별도로 설치하도록 정의.
++- 설치 중 추가 다운로드, 자동 업데이트, 시스템 시작 자동 실행 등록 없음.
++- Windows 보안 설정·백신 예외·방화벽·브라우저 설정 변경 없음.
++- 시작 메뉴 바로가기와 현재 사용자의 표준 제거 정보(HKCU)는 생성함.
++- 설치 직후 실행은 기본 선택 해제. 사용자 확인 없는 실행 없음.
++- 제거는 포함한 파일 이름 목록만 사용. 저장 데이터나 폴더 전체를 재귀 삭제하지 않음.
++- 게임 GDScript에는 네트워크·외부 프로세스 실행·화면 캡처·키보드 전역 후크 호출을 넣지 않음.
++- 이는 코드 설계 범위입니다. 엔진 전체의 취약점 부재나 실제 통신 부재를 증명한 것은 아닙니다.
+ 
+-## 아직 없는 것
+-- 실제 온라인 로그인/멀티플레이, 서버, 게임 DB, PvP, 팀 사냥
+-- 실제 스킬별 상태이상/범위 공격, 장비, 진화
+-- 캐릭터별 고급 애니메이션, 물리 충돌 및 일반 창 위에 올라가기
+-- 검증된 macOS / Windows 바이너리 릴리스
++### 저장 / 초기화
+ 
+-## 기존 저장 파일과의 관계
+-기존 Python, Windows Go, macOS JXA/브라우저 버전과 **저장 데이터는 자동 호환되지 않습니다.** 새 Godot 버전은 자체 신규 저장 파일을 생성합니다. 기존 데이터를 지우지는 않습니다.
++- 앱 전용 새 저장 폴더 사용. 이전 버전 데이터에 자동 접근하거나 덮어쓰지 않음.
++- JSON 파일 크기 64 KiB, 캐릭터 ID 목록, 자료형, 숫자 범위, 문자열 길이 검사.
++- 새 기록은 임시 파일에 쓰고 다시 읽어 확인한 뒤 교체. 이전 정상 기록 백업 유지.
++- 손상 시 이전 정상 기록을 우선 사용. 복구할 수 없으면 자동 저장 중단.
++- 더 높은 저장 형식 버전을 발견하면 덮어쓰기와 초기화 중단.
++- 초기화는 확인창 후 실행. 직전 기록을 `before-reset.json`에 **마지막 1개만** 보관.
++- 저장은 약 10초 단위로 묶어 처리하며 종료 때 추가 저장. 충돌 시 최근 진행 일부를 잃을 수 있음.
++- 디렉터리 잠금으로 다중 실행의 저장 충돌을 줄임. 잠금 확인에 실패하면 실행 중단.
++- 갑작스러운 전원 손실, 디스크 고장, 저장장치 오류까지 완전히 방지하는 기능은 아님.
+ 
+-### 테스트 상태
+-파일과 리소스 누락 및 구현 규칙은 정적 검사했습니다. 이 작업 환경에는 Godot 실행기가 없어서 **Godot 에디터에서 실제 실행 테스트는 수행하지 못했습니다.** OS별 투명 창 동작 역시 별도 검증이 필요합니다.
++### 화면 / 자원 사용
++
++- 첫 시작은 제목 표시줄과 닫기 버튼이 있는 일반 창. 항상 위/투명/테두리 없음은 기본 해제.
++- 기존 화면 전체 클릭 영역 계산은 제거. **바탕화면 자유 이동 모드는 Windows/macOS 검증 전까지 기본 비활성화**.
++- 사냥·상점·28종 캐릭터·레벨 20 제한은 일반 창에서 유지하는 소스 구조.
++- 바탕화면 모드 대체 코드는 별도 제어 창 방식으로 분리했으나 아직 운영체제에서 검증하지 않음. 일반 사용자가 활성화하면 안 됨.
++- 활성 프레임 30 FPS, 일시정지/최소화 10 FPS; 전투 진행도 멈춤.
++- 표시 이펙트 최대 24개, 동시에 몬스터 1개. 실제 발열·CPU·배터리 수치는 측정하지 못함.
++- 무제한 오류 로그의 디스크 사용을 피하도록 일반 게임의 파일 로깅은 기본 해제.
++
++## 폴더
++
++- `project.godot`, `scenes/`, `scripts/`, `assets/`: 수정한 공통 Godot 프로젝트
++- `tests/static_audit.py`: Python 표준 라이브러리만 쓰는 정적 검사
++- `tests/test_save_store.gd`: 저장/복구/검증 테스트 (이 세션에서는 미실행)
++- `tests/test_resources.gd`: Godot의 이미지 읽기 검사 (이 세션에서는 미실행)
++- `packaging/build_windows.ps1`: 개발자용 로컬 빌드 절차. 자체 다운로드 없음
++- `packaging/installer.nsi`: 오프라인 Windows 설치/제거 소스
++- `docs/검사결과_및_출시조건.md`: 수행한 검사와 남은 조건
++- `docs/변경내역.patch`: 원본과의 코드 차이
++- `docs/static_results.json`: 실제 정적 검사 결과
++- `docs/original_input_facts.json`: 점검한 원본의 해시/PE 서명 테이블 확인
++
++## 개발자 실행 및 설치판 빌드
++
++목표 버전은 **Godot 4.7.2 Standard + GDScript**입니다. 사용자가 Python이나 Godot을 설치해야 하는 완성 배포 방식은 아닙니다. 아래 도구는 **개발용 빌드 컴퓨터**에서만 필요합니다.
++
++1. 공식 출처에서 받은 Godot 4.7.2 Standard와 같은 버전의 내보내기 템플릿, NSIS 3.x, Python 3를 개발 환경에 준비합니다. 현재 환경에서는 이 준비/빌드를 하지 못했습니다.
++2. Godot에서 `project.godot`을 가져온 후 파싱 오류부터 확인합니다.
++3. 프로젝트 폴더에서 아래 검사들을 실행하고 오류가 하나라도 있으면 배포하지 않습니다.
++
++```text
++python tests/static_audit.py
++godot --headless --path . --check-only --script res://scripts/main.gd
++godot --headless --path . --script res://tests/test_save_store.gd
++godot --headless --path . --script res://tests/test_resources.gd
++```
++
++4. Windows 개발 환경의 PowerShell에서 로컬 도구 경로와 해당 Godot 버전의 전체 `COPYRIGHT.txt`를 지정하여 `packaging/build_windows.ps1`을 실행합니다. 이 스크립트는 테스트 실패 시 설치판 생성을 중단하도록 작성했습니다. 스크립트 실행 정책을 우회하거나 일반 사용자에게 PowerShell 명령 실행을 시키는 배포 방식이 아닙니다.
++5. 결과가 생성되더라도 `Review` 표기의 **서명 없는 검토용 설치판**입니다. 깨끗한 Windows 테스트 환경에서 검증 후 정식 배포 절차로 진행해야 합니다.
++
++예시 (경로는 개발자가 준비한 실제 경로로 대체):
++
++```powershell
++.\packaging\build_windows.ps1 `
++  -GodotExe 'C:\BuildTools\Godot\Godot_v4.7.2-stable_win64_console.exe' `
++  -MakeNsisExe 'C:\Program Files (x86)\NSIS\makensis.exe' `
++  -PythonExe 'C:\BuildTools\Python\python.exe' `
++  -GodotCopyrightFile 'C:\BuildTools\Godot\COPYRIGHT.txt' `
++  -AcknowledgedUnreviewedBuild
++```
++
++## 저장 경로 (이 소스로 빌드한 앱)
++
++Windows: `%APPDATA%\MochiPetRPG\desktop-v041\`
++
++macOS: `~/Library/Application Support/MochiPetRPG/desktop-v041/`
++
++`save.json` 현재 기록, `save.previous.json` 이전 정상 기록, `save.pending.json` 교체 대기 기록, `before-reset.json` 마지막 초기화 전 백업입니다.
++기존 v0.4 기록을 자동으로 가져오지 않습니다. 현재 사용자는 아직 실행하지 않았으므로 이전 기록을 옮길 필요가 없습니다.
++
++`session.lock`에 유효한 소유자 기록이 없으면 자동으로 삭제하지 않고 실행을 중단합니다. 모든 모찌펫 프로세스가 종료됐는지 확인한 뒤 **앱 전용 폴더의 해당 잠금 디렉터리만** 개발자가 확인하여 처리해야 합니다.
++
++## 사용 범위
++
++온라인 계정, 멀티플레이, 서버 검증, 부정행위 방지는 이 작업 범위가 아닙니다. 오프라인 코인·레벨 기록을 신뢰 가능한 서버 자산으로 그대로 가져가면 안 됩니다. 향후 온라인 연동 설계를 따로 검토해야 합니다.
++이 검토본은 일반 사용자 대상 출시 자료가 아닙니다. 원본 캐릭터 이미지와 애니메이션은 변경하지 않았습니다. 소재의 권리 검토나 제3자 보안 감사도 수행하지 않았습니다.
+--- /dev/null
++++ b/export_presets.cfg
+@@ -0,0 +1,33 @@
++[preset.0]
++name="Windows Review"
++platform="Windows Desktop"
++runnable=true
++advanced_options=true
++export_filter="all_resources"
++include_filter=""
++exclude_filter="tests/*,docs/*,packaging/*,build/*,README*,*.md,*.patch,*.py,*.json"
++export_path="build/windows/MochiPetRPG.exe"
++encryption_include_filters=""
++encryption_exclude_filters=""
++encrypt_pck=false
++encrypt_directory=false
++script_export_mode=2
++
++[preset.0.options]
++custom_template/debug=""
++custom_template/release=""
++debug/export_console_wrapper=0
++binary_format/embed_pck=false
++binary_format/architecture="x86_64"
++codesign/enable=false
++application/modify_resources=true
++application/file_version="0.4.1.0"
++application/product_version="0.4.1.0"
++application/company_name=""
++application/product_name="MochiPet RPG Review Build"
++application/file_description="Offline development review build - unsigned"
++application/copyright=""
++application/trademarks=""
++application/export_angle=0
++application/export_d3d12=0
++shader_baker/enabled=false
+--- /dev/null
++++ b/packaging/build_windows.ps1
+@@ -0,0 +1,85 @@
++# Developer-only offline build. Never use an execution-policy bypass for users.
++# Prerequisites must already be installed from trusted sources: Godot 4.7.2
++# Standard + matching export templates, NSIS 3.x, and Python 3 for static checks.
++[CmdletBinding()]
++param(
++    [Parameter(Mandatory=$true)][string]$GodotExe,
++    [Parameter(Mandatory=$true)][string]$MakeNsisExe,
++    [Parameter(Mandatory=$true)][string]$PythonExe,
++    [Parameter(Mandatory=$true)][string]$GodotCopyrightFile,
++    [switch]$AcknowledgedUnreviewedBuild
++)
++Set-StrictMode -Version Latest
++$ErrorActionPreference = 'Stop'
++if (-not $AcknowledgedUnreviewedBuild) {
++    throw 'This creates an unsigned review build, not a security-approved release. Pass -AcknowledgedUnreviewedBuild only on a developer machine.'
++}
++$Root = Split-Path -Parent $PSScriptRoot
++$Build = Join-Path $Root 'build'
++$Payload = Join-Path $Build 'windows'
++$Installer = Join-Path $Build 'MochiPetRPG-0.4.1-Review-Setup.exe'
++foreach ($Path in @($GodotExe, $MakeNsisExe, $PythonExe, $GodotCopyrightFile)) {
++    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw "Missing prerequisite: $Path" }
++}
++$Version = (& $GodotExe --version | Out-String).Trim()
++if ($LASTEXITCODE -ne 0 -or -not $Version.StartsWith('4.7.2.stable')) {
++    throw "Expected reviewed target Godot 4.7.2.stable, got: $Version"
++}
++if (Test-Path -LiteralPath $Payload) {
++    # Do not recursively delete arbitrary build output. Review/remove it yourself.
++    throw "Build output already exists: $Payload. Move it aside before a new build."
++}
++New-Item -ItemType Directory -Path $Payload -Force | Out-Null
++function Invoke-CheckedGodot {
++    param([string[]]$Arguments, [string]$LogName)
++    $Log = Join-Path $Build $LogName
++    & $GodotExe @Arguments 2>&1 | Tee-Object -FilePath $Log
++    $Result = $LASTEXITCODE
++    if ($Result -ne 0) { throw "Godot failed ($Result): $LogName" }
++    if (Select-String -Path $Log -Pattern 'SCRIPT ERROR:|Parse Error:|ERROR:' -Quiet) {
++        throw "Godot reported errors: $LogName"
++    }
++}
++# No download/HTTP calls, Invoke-Expression, elevation, or policy modification.
++& $PythonExe (Join-Path $Root 'tests\static_audit.py') --root $Root
++if ($LASTEXITCODE -ne 0) { throw 'Static policy/resource audit failed.' }
++Invoke-CheckedGodot -Arguments @('--headless','--path',$Root,'--editor','--import','--quit') -LogName 'import.log'
++Invoke-CheckedGodot -Arguments @('--headless','--path',$Root,'--check-only','--script','res://scripts/main.gd') -LogName 'parse-main.log'
++Invoke-CheckedGodot -Arguments @('--headless','--path',$Root,'--script','res://tests/test_save_store.gd') -LogName 'save-tests.log'
++Invoke-CheckedGodot -Arguments @('--headless','--path',$Root,'--script','res://tests/test_resources.gd') -LogName 'resource-tests.log'
++Invoke-CheckedGodot -Arguments @('--headless','--path',$Root,'--export-release','Windows Review',(Join-Path $Payload 'MochiPetRPG.exe')) -LogName 'export.log'
++foreach ($Name in @('MochiPetRPG.exe','MochiPetRPG.pck')) {
++    $File = Join-Path $Payload $Name
++    if (-not (Test-Path -LiteralPath $File -PathType Leaf)) { throw "Export missing $Name" }
++    if ((Get-Item -LiteralPath $File).Length -eq 0) { throw "Export is empty: $Name" }
++}
++# Include Godot's complete copyright/third-party license notices supplied by
++# the developer from the exact engine release. Do not substitute a URL only.
++$Copyright = Get-Content -LiteralPath $GodotCopyrightFile -Raw
++if ($Copyright.Length -lt 1000 -or $Copyright -notmatch 'Godot') {
++    throw 'Supply the full copyright.txt from the exact Godot release, not a placeholder.'
++}
++Copy-Item -LiteralPath $GodotCopyrightFile -Destination (Join-Path $Payload 'GODOT_COPYRIGHT.txt')
++@"
++MochiPet RPG 0.4.1-review
++Engine: $Version
++Build time UTC: $([DateTime]::UtcNow.ToString('o'))
++Unsigned development review build. No independent security certification.
++Installer: offline, per-user, no elevated privilege request.
++Game: no application-level networking or auto-update logic.
++Default: normal window; experimental desktop overlay disabled.
++Saved data: %APPDATA%\MochiPetRPG\desktop-v041
++Do not publicly distribute until native runtime and antivirus tests pass.
++"@ | Set-Content -Encoding UTF8 -LiteralPath (Join-Path $Payload 'BUILD_INFO.txt')
++$Hashes = foreach ($Name in @('MochiPetRPG.exe','MochiPetRPG.pck','BUILD_INFO.txt','GODOT_COPYRIGHT.txt')) {
++    $Hash = (Get-FileHash -LiteralPath (Join-Path $Payload $Name) -Algorithm SHA256).Hash.ToLowerInvariant()
++    "$Hash  $Name"
++}
++$Hashes | Set-Content -Encoding ASCII -LiteralPath (Join-Path $Payload 'PAYLOAD_SHA256.txt')
++# The installer contains the engine and assets; it downloads nothing on users' PCs.
++& $MakeNsisExe "/DPAYLOAD_DIR=$Payload" "/DOUTPUT_FILE=$Installer" (Join-Path $PSScriptRoot 'installer.nsi')
++if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $Installer)) { throw 'NSIS build failed.' }
++$SetupHash = (Get-FileHash -LiteralPath $Installer -Algorithm SHA256).Hash.ToLowerInvariant()
++"$SetupHash  $([IO.Path]::GetFileName($Installer))" | Set-Content -Encoding ASCII -LiteralPath ($Installer + '.sha256')
++Write-Host "Created UNSIGNED REVIEW installer: $Installer"
++Write-Host 'Native Windows execution, offline network monitoring, Defender scan, and signature/reputation checks are STILL required.'
+--- /dev/null
++++ b/packaging/installer.nsi
+@@ -0,0 +1,124 @@
++; Development-review installer source. NOT a signed or tested release artifact.
++; Requires trusted, locally installed NSIS 3.x and an already exported game.
++Unicode true
++!include "MUI2.nsh"
++!include "LogicLib.nsh"
++!include "x64.nsh"
++!include "WinVer.nsh"
++
++!ifndef PAYLOAD_DIR
++  !error "PAYLOAD_DIR is required. Export the game locally first."
++!endif
++!ifndef OUTPUT_FILE
++  !error "OUTPUT_FILE is required."
++!endif
++!define APP_NAME "MochiPet RPG Review 0.4.1"
++!define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\MochiPetRPG-Review-041"
++
++Name "${APP_NAME}"
++OutFile "${OUTPUT_FILE}"
++InstallDir "$LOCALAPPDATA\Programs\MochiPetRPG-Review\0.4.1"
++RequestExecutionLevel user
++ManifestDPIAware true
++ManifestSupportedOS all
++CRCCheck force
++SetCompressor /SOLID lzma
++ShowInstDetails show
++ShowUninstDetails show
++
++!define MUI_ABORTWARNING
++!define MUI_WELCOMEPAGE_TITLE "모찌펫 RPG 검토용 빌드"
++!define MUI_WELCOMEPAGE_TEXT "서명되지 않은 개발용 테스트판입니다.$\r$\n$\r$\n설치 중 인터넷 다운로드, 관리자 권한 요청, 자동 실행 등록, 백신 설정 변경을 하지 않습니다.$\r$\n$\r$\nWindows 실행·보안 검증을 마친 정식 배포본은 아닙니다. 설치를 취소해도 됩니다."
++!insertmacro MUI_PAGE_WELCOME
++!insertmacro MUI_PAGE_INSTFILES
++!define MUI_FINISHPAGE_RUN "$INSTDIR\MochiPetRPG.exe"
++!define MUI_FINISHPAGE_RUN_TEXT "모찌펫 실행 (선택)"
++!define MUI_FINISHPAGE_RUN_NOTCHECKED
++!insertmacro MUI_PAGE_FINISH
++!insertmacro MUI_UNPAGE_CONFIRM
++!insertmacro MUI_UNPAGE_INSTFILES
++!insertmacro MUI_LANGUAGE "Korean"
++
++Function .onInit
++  SetShellVarContext current
++  ${IfNot} ${RunningX64}
++    MessageBox MB_ICONSTOP "이 빌드는 Windows 64비트용입니다."
++    Abort
++  ${EndIf}
++  ${IfNot} ${AtLeastWin10}
++    MessageBox MB_ICONSTOP "Windows 10 이상에서만 설치하도록 설정했습니다."
++    Abort
++  ${EndIf}
++  ; No command-line directory override. No elevated install context.
++  StrCpy $INSTDIR "$LOCALAPPDATA\Programs\MochiPetRPG-Review\0.4.1"
++  IfFileExists "$INSTDIR\MochiPetRPG.exe" 0 +3
++    MessageBox MB_ICONSTOP "같은 검토판이 이미 있습니다. 앱을 닫고 기존 검토판을 제거한 뒤 다시 설치하세요. 저장 기록은 유지됩니다."
++    Abort
++FunctionEnd
++
++Section "Game"
++  SetShellVarContext current
++  StrCpy $INSTDIR "$LOCALAPPDATA\Programs\MochiPetRPG-Review\0.4.1"
++  ; Refuse junction/reparse-point redirection of the app's own directories.
++  System::Call 'kernel32::GetFileAttributesW(w "$LOCALAPPDATA\Programs\MochiPetRPG-Review") i .r0'
++  IntOp $1 $0 & 0x400
++  ${If} $0 != -1
++  ${AndIf} $1 != 0
++    MessageBox MB_ICONSTOP "설치 폴더가 링크로 연결되어 있어 설치를 중단했습니다."
++    Abort
++  ${EndIf}
++  System::Call 'kernel32::GetFileAttributesW(w "$INSTDIR") i .r0'
++  IntOp $1 $0 & 0x400
++  ${If} $0 != -1
++  ${AndIf} $1 != 0
++    MessageBox MB_ICONSTOP "설치 경로가 링크로 연결되어 있어 설치를 중단했습니다."
++    Abort
++  ${EndIf}
++  SetOutPath "$INSTDIR"
++  ClearErrors
++  File "${PAYLOAD_DIR}\MochiPetRPG.exe"
++  File "${PAYLOAD_DIR}\MochiPetRPG.pck"
++  File "${PAYLOAD_DIR}\BUILD_INFO.txt"
++  File "${PAYLOAD_DIR}\GODOT_COPYRIGHT.txt"
++  File "${PAYLOAD_DIR}\PAYLOAD_SHA256.txt"
++  IfErrors 0 files_ok
++    MessageBox MB_ICONSTOP "파일 복사에 실패했습니다. 자동 실행하지 않습니다. 설치 폴더를 확인해 주세요."
++    Abort
++  files_ok:
++  WriteUninstaller "$INSTDIR\Uninstall.exe"
++  IfErrors 0 uninstaller_ok
++    MessageBox MB_ICONSTOP "제거 프로그램 생성에 실패했습니다. 설치를 중단합니다."
++    Abort
++  uninstaller_ok:
++  CreateDirectory "$SMPROGRAMS\MochiPet RPG Review"
++  CreateShortcut "$SMPROGRAMS\MochiPet RPG Review\MochiPet RPG.lnk" "$INSTDIR\MochiPetRPG.exe"
++  CreateShortcut "$SMPROGRAMS\MochiPet RPG Review\제거.lnk" "$INSTDIR\Uninstall.exe"
++  ; Only standard per-user uninstall metadata is written. No Run/Startup keys.
++  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayName" "${APP_NAME}"
++  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayVersion" "0.4.1-review"
++  WriteRegStr HKCU "${UNINSTALL_KEY}" "InstallLocation" "$INSTDIR"
++  WriteRegStr HKCU "${UNINSTALL_KEY}" "UninstallString" '$"$INSTDIR\Uninstall.exe$"'
++  WriteRegDWORD HKCU "${UNINSTALL_KEY}" "NoModify" 1
++  WriteRegDWORD HKCU "${UNINSTALL_KEY}" "NoRepair" 1
++SectionEnd
++
++Section "Uninstall"
++  SetShellVarContext current
++  ; A strict list only. No RMDir /r, user-data deletion or system-folder cleanup.
++  ClearErrors
++  Delete "$INSTDIR\MochiPetRPG.exe"
++  IfErrors 0 +3
++    MessageBox MB_ICONSTOP "실행 파일을 제거할 수 없습니다. 모찌펫을 닫고 다시 시도하세요."
++    Abort
++  Delete "$INSTDIR\MochiPetRPG.pck"
++  Delete "$INSTDIR\BUILD_INFO.txt"
++  Delete "$INSTDIR\GODOT_COPYRIGHT.txt"
++  Delete "$INSTDIR\PAYLOAD_SHA256.txt"
++  Delete "$INSTDIR\Uninstall.exe"
++  RMDir "$INSTDIR"
++  Delete "$SMPROGRAMS\MochiPet RPG Review\MochiPet RPG.lnk"
++  Delete "$SMPROGRAMS\MochiPet RPG Review\제거.lnk"
++  RMDir "$SMPROGRAMS\MochiPet RPG Review"
++  DeleteRegKey HKCU "${UNINSTALL_KEY}"
++  MessageBox MB_OK "프로그램 제거를 요청했습니다. 실행 중인 파일은 남을 수 있습니다.$\r$\n앱 전용 폴더의 육성 저장 기록은 삭제하지 않았습니다."
++SectionEnd
+--- a/project.godot
++++ b/project.godot
+@@ -2,25 +2,38 @@
+ 
+ [application]
+ config/name="MochiPet Desktop Hunt"
++config/version="0.4.1-review"
+ run/main_scene="res://scenes/Main.tscn"
+-config/features=PackedStringArray("4.2", "GL Compatibility")
++config/features=PackedStringArray("4.7", "GL Compatibility")
++config/use_custom_user_dir=true
++config/custom_user_dir_name="MochiPetRPG/desktop-v041"
+ 
+ [display]
+-window/size/viewport_width=1280
++window/size/viewport_width=960
+ window/size/viewport_height=720
+-window/size/window_width_override=1280
++window/size/window_width_override=960
+ window/size/window_height_override=720
+-window/size/transparent=true
++window/size/transparent=false
+ window/per_pixel_transparency/allowed=true
+-window/size/borderless=true
+-window/size/always_on_top=true
+-window/handheld/orientation=1
++window/size/borderless=false
++window/size/always_on_top=false
++window/subwindows/embed_subwindows=false
++window/vsync/vsync_mode=1
+ 
+ [rendering]
+ renderer/rendering_method="gl_compatibility"
+ renderer/rendering_method.mobile="gl_compatibility"
+-viewport/transparent_background=true
+-textures/default_filters/use_nearest_mipmap_filter=false
++environment/defaults/default_clear_color=Color(0.10, 0.12, 0.18, 1)
++
++[debug]
++file_logging/enable_file_logging=false
++file_logging/enable_file_logging.pc=false
++file_logging/log_path="user://logs/game.log"
++file_logging/max_log_files=3
+ 
+ [gui]
+ theme/default_font_size=16
++
++[mochi]
++; Keep disabled until Windows/macOS native-window tests have been completed.
++experimental_desktop_overlay=false
+--- a/scripts/main.gd
++++ b/scripts/main.gd
+@@ -1,9 +1,13 @@
+ extends Node2D
+-## Godot 4.2+ transparent desktop pet / visibly animated real-time monster hunting.
++## Godot 4.7.2 target: offline desktop-pet prototype, hardening review build.
+ ## Open-source, offline prototype. Online account linking is intentionally NOT implemented.
+ 
+ const MAX_LEVEL := 20
+-const SAVE_FILE := "user://mochipet_desktop_save.json"
++const SaveStore := preload("res://scripts/save_store.gd")
++const SessionGuard := preload("res://scripts/session_guard.gd")
++const MAX_FLOATS := 24
++const FPS_ACTIVE := 30
++const FPS_PAUSED := 10
+ const PET_SIZE := Vector2(104, 104)
+ const MOB_SIZE := Vector2(86, 86)
+ const CHARACTERS := [
+@@ -29,7 +33,7 @@
+     {"name":"달빛 언덕", "level":15, "mobs":["ghost", "moon"], "hp":174, "attack":10, "xp":70, "coin":55}
+ ]
+ 
+-var data := {"character":"z_rabbit", "name":"모찌", "level":1, "xp":0, "coins":60, "hp":60, "hunger":82, "mood":80, "attack":7, "defense":2, "speed":1, "toys":0, "skills":0, "zone":0, "hunt":false, "first_run":true}
++var data: Dictionary = SaveStore.defaults()
+ var pet_x := 280.0
+ var target_x := 500.0
+ var y_base := 600.0
+@@ -52,38 +56,71 @@
+ var mob_tex_cache := {}
+ var rng := RandomNumberGenerator.new()
+ var autosave_time := 0.0
++var save_store = SaveStore.new()
++var session_guard = SessionGuard.new()
++var save_dirty := false
++var save_ready := false
++var save_retry_wait := 0.0
++var startup_notice := ""
++var game_paused := false
++var quitting := false
++var mode_button: Button
++var pause_button: Button
++var reset_confirm: ConfirmationDialog
++var quit_confirm: ConfirmationDialog
++var ui_layer: CanvasLayer
++var desktop_mode := false
++var controller: Window
++var normal_position := Vector2i(80, 80)
++var normal_size := Vector2i(960, 720)
++var display_check_time := 0.0
+ 
+ func _ready() -> void:
++    Engine.max_fps = FPS_ACTIVE
+     rng.randomize()
++    set_process(false)
++    get_tree().auto_accept_quit = false
++    if not session_guard.acquire():
++        OS.alert("모찌펫이 이미 실행 중이거나 잠금 기록을 확인할 수 없습니다. 기존 모찌펫 창을 먼저 닫아 주세요. 저장 파일은 변경하지 않았습니다.", "모찌펫 실행 중단")
++        get_tree().quit()
++        return
+     _load_game()
+-    get_viewport().transparent_bg = true
+     var win := get_window()
+-    # A borderless transparent overlay spanning the primary monitor.
+-    # Restrict pointer capture to HUD/pet/monster; other desktop areas stay usable.
+-    win.transparent = true
+-    win.borderless = true
+-    win.always_on_top = true
+-    win.unresizable = true
+-    var rect := DisplayServer.screen_get_rect(0)
+-    win.position = rect.position
+-    win.size = rect.size
+-    screen_size = Vector2(rect.size)
+-    y_base = screen_size.y - 105.0
++    win.title = "모찌펫 RPG 0.4.1 — 검토용 테스트 빌드"
++    win.transparent = false
++    win.borderless = false
++    win.always_on_top = false
++    win.mouse_passthrough = false
++    win.unfocusable = false
++    win.min_size = Vector2i(720, 600)
++    win.size = normal_size
++    get_viewport().transparent_bg = false
++    get_viewport().gui_embed_subwindows = false
++    win.close_requested.connect(_request_quit)
++    win.size_changed.connect(_resize_layout)
++    _build_ui()
++    _build_confirmations()
++    _resize_layout()
+     pet_x = minf(280.0, screen_size.x * 0.4)
+-    target_x = pet_x + 150.0
+-    _build_ui()
++    target_x = pet_x + 120.0
+     _refresh_ui()
+-    if bool(data.first_run):
++    if bool(data.first_run) and save_ready:
+         _show_characters()
+-    _update_passthrough()
++    if not startup_notice.is_empty():
++        _notify(startup_notice)
++        message_time = 30.0
++    if not save_ready:
++        game_paused = true
++        _show_settings()
++    set_process(true)
+ 
+ func _build_ui() -> void:
+-    var layer := CanvasLayer.new()
+-    add_child(layer)
++    ui_layer = CanvasLayer.new()
++    add_child(ui_layer)
+     hud = Control.new()
+     hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+     hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+-    layer.add_child(hud)
++    ui_layer.add_child(hud)
+     var box := PanelContainer.new()
+     box.position = Vector2(16, 14)
+     box.custom_minimum_size = Vector2(492, 86)
+@@ -103,13 +140,22 @@
+     _btn(button_bar,"🛒 상점", _show_shop)
+     _btn(button_bar,"🐣 펫", _show_status)
+     _btn(button_bar,"⚙", _show_settings)
++    _btn(button_bar,"종료", _request_quit)
++    var safety_row := HBoxContainer.new()
++    v.add_child(safety_row)
++    pause_button = _btn(safety_row, "일시정지", _toggle_pause)
++    mode_button = _btn(safety_row, "바탕화면 모드 (시험)", _request_desktop_mode)
++    mode_button.disabled = not bool(ProjectSettings.get_setting("mochi/experimental_desktop_overlay", false))
++    mode_button.tooltip_text = "운영체제별 클릭 통과·종료 검증 전까지 비활성화했습니다. 일반 창에서 사냥과 육성은 가능합니다."
+     msg_label = Label.new()
+-    msg_label.position = Vector2(20, 105)
+-    msg_label.add_theme_font_size_override("font_size", 17)
++    msg_label.position = Vector2(20, 124)
++    msg_label.add_theme_font_size_override("font_size", 14)
++    msg_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
++    msg_label.custom_minimum_size = Vector2(510, 40)
+     hud.add_child(msg_label)
+     dialog = PanelContainer.new()
+     dialog.visible = false
+-    dialog.position = Vector2(18, 145)
++    dialog.position = Vector2(18, 170)
+     dialog.custom_minimum_size = Vector2(490, 420)
+     hud.add_child(dialog)
+ 
+@@ -123,8 +169,10 @@
+ 
+ func _open_panel(heading: String) -> VBoxContainer:
+     for c in dialog.get_children():
++        dialog.remove_child(c)
+         c.queue_free()
+     dialog.visible = true
++    _resize_layout()
+     var outer := VBoxContainer.new()
+     outer.add_theme_constant_override("separation", 9)
+     dialog.add_child(outer)
+@@ -140,7 +188,7 @@
+         _update_passthrough()
+     )
+     var scroll := ScrollContainer.new()
+-    scroll.custom_minimum_size = Vector2(468, 365)
++    scroll.custom_minimum_size = Vector2(468, minf(350.0, _ui_height() - 230.0))
+     outer.add_child(scroll)
+     var body := VBoxContainer.new()
+     body.add_theme_constant_override("separation", 7)
+@@ -178,7 +226,7 @@
+ func _show_zones() -> void:
+     var body := _open_panel("🗺 화면 위 사냥터")
+     var info := Label.new()
+-    info.text = "사냥터를 선택하고 사냥 ON을 누르면 바탕화면에서 몬스터가 등장해요."
++    info.text = "사냥터를 선택하고 사냥을 누르면 게임 화면에서 몬스터가 등장해요."
+     info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+     body.add_child(info)
+     for i in range(ZONES.size()):
+@@ -197,19 +245,21 @@
+ 
+ func _show_shop() -> void:
+     var body := _open_panel("🛒 모찌 상점 — 코인 %d" % int(data.coins))
+-    _shop_item(body, "🍙 맛있는 밥  |  15코인  |  배고픔 +30", 15, func(): data.hunger = mini(100, int(data.hunger)+30))
+-    _shop_item(body, "🧸 장난감  |  45코인  |  기분 +25, 소장 +1", 45, func():
++    _shop_item(body, "🍙 맛있는 밥 | 15코인 | 배부름 +30", 15, false, func(): data.hunger = mini(100, int(data.hunger)+30))
++    var toy_effect := func():
+         data.mood = mini(100, int(data.mood)+25)
+         data.toys = int(data.toys)+1
+-    )
+-    _shop_item(body, "⚔ 공격 훈련  |  70코인  |  공격력 +2", 70, func(): data.attack = int(data.attack)+2)
+-    _shop_item(body, "🛡 방어 훈련  |  70코인  |  방어력 +1", 70, func(): data.defense = int(data.defense)+1)
+-    _shop_item(body, "👟 민첩 훈련  |  75코인  |  이동 속도 +1", 75, func(): data.speed = int(data.speed)+1)
+-    _shop_item(body, "✨ 추가 스킬 강화  |  120코인  |  스킬 레벨 +1", 120, func(): data.skills = int(data.skills)+1)
+-    _shop_item(body, "💗 회복 간식  |  20코인  |  HP 완전 회복", 20, func(): data.hp = _max_hp())
+-
+-func _shop_item(parent: Node, label: String, price: int, effect: Callable) -> void:
++    _shop_item(body, "🧸 장난감 | 45코인 | 기분 +25, 소장 +1 (최대 99)", 45, int(data.toys) >= 99, toy_effect)
++    _shop_item(body, "⚔ 공격 훈련 | 70코인 | 공격력 +2 (최대 200)", 70, int(data.attack) >= 200, func(): data.attack = mini(200, int(data.attack)+2))
++    _shop_item(body, "🛡 방어 훈련 | 70코인 | 방어력 +1 (최대 100)", 70, int(data.defense) >= 100, func(): data.defense = int(data.defense)+1)
++    _shop_item(body, "👟 민첩 훈련 | 75코인 | 속도 +1 (최대 20)", 75, int(data.speed) >= 20, func(): data.speed = int(data.speed)+1)
++    _shop_item(body, "✨ 스킬 강화 | 120코인 | 스킬 +1 (최대 20)", 120, int(data.skills) >= 20, func(): data.skills = int(data.skills)+1)
++    _shop_item(body, "💗 회복 간식 | 20코인 | HP 회복", 20, false, func(): data.hp = _max_hp())
++
++func _shop_item(parent: Node, label: String, price: int, at_cap: bool, effect: Callable) -> void:
+     var b := _btn(parent, label, func():
++        if at_cap or not save_ready:
++            return
+         if int(data.coins) < price:
+             _notify("코인이 부족해요!")
+             return
+@@ -219,7 +269,7 @@
+         _notify("구매 성공! -%d 코인" % price)
+         _show_shop()
+     )
+-    b.disabled = int(data.coins) < price
++    b.disabled = int(data.coins) < price or at_cap or not save_ready
+ 
+ func _show_status() -> void:
+     var body := _open_panel("🐣 내 펫 정보")
+@@ -240,28 +290,31 @@
+     )
+ 
+ func _show_settings() -> void:
+-    var body := _open_panel("⚙ 설정")
+-    _btn(body, "캐릭터 바꾸기 (현재 능력치는 유지)", _show_characters)
+-    _btn(body, "기록 저장", func():
+-        _save_game()
+-        _notify("저장 완료")
++    var body := _open_panel("⚙ 설정 · 보안/안정성 검토판")
++    _btn(body, "캐릭터 바꾸기 (능력치 유지)", _show_characters).disabled = not save_ready
++    _btn(body, "지금 저장", func():
++        save_dirty = true
++        if _flush_save():
++            _notify("저장 완료. 이전 정상 기록도 백업했습니다.")
++    ).disabled = not save_ready
++    _btn(body, "처음부터 다시 시작…", func():
++        reset_confirm.popup_centered(Vector2i(490, 240))
+     )
+-    _btn(body, "처음부터 다시 시작 (초기화)", func():
+-        data = _default_data()
+-        mob.clear()
+-        _save_game()
+-        _show_characters()
+-    )
+-    _btn(body, "게임 종료", func():
+-        _save_game()
+-        get_tree().quit()
+-    )
++    _btn(body, "게임 종료", _request_quit)
+     var note := Label.new()
+-    note.text = "현재 버전: 오프라인 Lv.20까지. 온라인 계정/멀티플레이는 아직 없습니다."
++    note.text = "오프라인 Lv.20까지 · 온라인/멀티플레이 미구현\n네트워크 통신·자동 실행 등록·보안 설정 변경 없음\n첫 실행은 일반 창. 바탕화면 모드는 OS 검증 전 비활성화.\n저장 위치: 앱 전용 desktop-v041 폴더\n초기화 전 기록은 before-reset.json에 마지막 1개 보관.\n현재 빌드는 실기기 실행/백신 검사가 완료되지 않았습니다."
+     note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+     body.add_child(note)
++    if not save_ready:
++        var warning := Label.new()
++        warning.text = save_store.last_error + "\n기록 보호를 위해 자동 저장을 멈췄습니다."
++        warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
++        body.add_child(warning)
+ 
+ func _toggle_hunt(on: bool) -> void:
++    if not save_ready:
++        _notify("저장 문제를 먼저 확인해 주세요.")
++        return
+     data.hunt = on
+     if on and int(data.level) < int(ZONES[int(data.zone)].level):
+         data.zone = 0
+@@ -275,25 +328,41 @@
+     _save_game()
+ 
+ func _process(delta: float) -> void:
+-    delta = minf(delta, 0.075)
++    delta = minf(delta, 0.1)
++    save_retry_wait = maxf(0.0, save_retry_wait - delta)
++    autosave_time += delta
++    if autosave_time >= 10.0:
++        autosave_time = 0.0
++        if save_dirty and save_retry_wait <= 0.0:
++            _flush_save()
++    var minimized := get_window().mode == Window.MODE_MINIMIZED
++    if is_instance_valid(controller):
++        minimized = minimized or controller.mode == Window.MODE_MINIMIZED
++    if game_paused or minimized or not save_ready:
++        Engine.max_fps = FPS_PAUSED
++        return
++    Engine.max_fps = FPS_ACTIVE
+     animation_time += delta
+     action_wait = maxf(0, action_wait - delta)
+     hit_flash = maxf(0, hit_flash - delta)
+     message_time = maxf(0, message_time - delta)
+-    if message_time <= 0: msg_label.text = ""
+-    y_base = screen_size.y - 108.0
++    if message_time <= 0:
++        msg_label.text = ""
++    y_base = screen_size.y - 42.0
+     if bool(data.hunt):
+         if mob.is_empty():
+             spawn_wait -= delta
+-            if spawn_wait <= 0: _spawn_monster()
++            if spawn_wait <= 0:
++                _spawn_monster()
+         else:
+             var distance := absf(pet_x - float(mob.x))
+-            if distance > 93:
+-                pet_x = move_toward(pet_x, float(mob.x) - 80, (105 + int(data.speed)*18)*delta)
++            if distance > 93.0:
++                var approach := float(mob.x) + (80.0 if pet_x > float(mob.x) else -80.0)
++                pet_x = move_toward(pet_x, approach, (105 + int(data.speed)*18)*delta)
+             elif action_wait <= 0:
+                 _attack_monster()
+     else:
+-        if absf(pet_x-target_x)<10:
++        if absf(pet_x-target_x) < 10:
+             target_x = rng.randf_range(95, maxf(130, screen_size.x-95))
+             rest_wait = rng.randf_range(0.5, 2.0)
+         if rest_wait > 0:
+@@ -303,14 +372,13 @@
+     for f in floats:
+         f.life -= delta
+         f.y -= delta*42
+-    floats = floats.filter(func(f): return f.life>0)
+-    autosave_time += delta
+-    if autosave_time > 25:
+-        autosave_time = 0
+-        _save_game()
+-        _refresh_ui()
++    floats = floats.filter(func(f): return f.life > 0)
++    if desktop_mode:
++        display_check_time += delta
++        if display_check_time >= 2.0:
++            display_check_time = 0.0
++            _fit_desktop()
+     queue_redraw()
+-    if Engine.get_process_frames() % 8 == 0: _update_passthrough()
+ 
+ func _spawn_monster() -> void:
+     var z: Dictionary = ZONES[int(data.zone)]
+@@ -332,7 +400,7 @@
+     if int(mob.hp) <= 0:
+         var z: Dictionary = ZONES[int(data.zone)]
+         var reward := int(z.coin)+rng.randi_range(0, 8)
+-        data.coins = int(data.coins)+reward
++        data.coins = mini(9999999, int(data.coins)+reward)
+         _gain_xp(int(z.xp))
+         _float_text("+%d 🪙" % reward,float(mob.x),y_base-152,Color("fff5a6"))
+         mob.clear()
+@@ -340,7 +408,7 @@
+         _refresh_ui()
+         _save_game()
+     else:
+-        var enemy_hit := maxi(1, int(ZONES[int(data.zone)].attack)-int(data.defense) / 2)
++        var enemy_hit := maxi(1, int(ZONES[int(data.zone)].attack)-int(int(data.defense) / 2.0))
+         data.hp = maxi(0,int(data.hp)-enemy_hit)
+         _float_text("-%d HP" % enemy_hit,pet_x,y_base-136,Color("ffb7b7"))
+         if int(data.hp) <= 0:
+@@ -349,6 +417,7 @@
+             mob.clear()
+             _notify("펫이 지쳐서 집으로 돌아왔어요. 사냥 OFF!")
+         _refresh_ui()
++        _save_game()
+ 
+ func _gain_xp(amount: int) -> void:
+     if int(data.level) >= MAX_LEVEL: return
+@@ -356,7 +425,7 @@
+     while int(data.level) < MAX_LEVEL and int(data.xp) >= _xp_need():
+         data.xp = int(data.xp)-_xp_need()
+         data.level = int(data.level)+1
+-        data.attack = int(data.attack)+1
++        data.attack = mini(200, int(data.attack)+1)
+         data.hp = _max_hp()
+         _notify("🎉 레벨 업! Lv.%d" % int(data.level))
+     if int(data.level) >= MAX_LEVEL:
+@@ -364,6 +433,8 @@
+         _notify("🎓 Lv.20 달성! 오프라인 만렙! 온라인은 개발 예정")
+ 
+ func _draw() -> void:
++    if not desktop_mode:
++        draw_rect(Rect2(Vector2(0, screen_size.y - 180), Vector2(screen_size.x, 180)), Color("242d42"))
+     var pet_state := "walk" if absf(pet_x-target_x) > 18 or bool(data.hunt) else "idle"
+     if action_wait > 0 and hit_flash > 0: pet_state = "play"
+     if not bool(data.hunt) and rest_wait > 0: pet_state = "idle"
+@@ -372,7 +443,7 @@
+     if pet_tex:
+         var py := y_base - PET_SIZE.y + sin(animation_time*9.0)*2.5
+         draw_texture_rect(pet_tex,Rect2(pet_x-PET_SIZE.x*0.5,py,PET_SIZE),false)
+-    draw_string(ThemeDB.fallback_font,Vector2(pet_x-36,y_base+10),"%s Lv.%d"%[data.name,data.level],HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("2c2440"))
++    draw_string(ThemeDB.fallback_font,Vector2(pet_x-36,y_base+10),"%s Lv.%d"%[data.name,data.level],HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("e9e6ff"))
+     if not mob.is_empty():
+         var tx := _monster_texture(str(mob.kind))
+         if tx:
+@@ -383,25 +454,15 @@
+         var bx := float(mob.x)-43
+         draw_rect(Rect2(bx,y_base-103,86,8),Color("55425c"),true)
+         draw_rect(Rect2(bx+1,y_base-102,84*maxf(0,float(mob.hp)/float(mob.max_hp)),6),Color("ff819d"),true)
+-        draw_string(ThemeDB.fallback_font,Vector2(bx,y_base+12),_mob_name(str(mob.kind)),HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("473348"))
++        draw_string(ThemeDB.fallback_font,Vector2(bx,y_base+12),_mob_name(str(mob.kind)),HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("e9e6ff"))
+     for f in floats:
+         draw_string(ThemeDB.fallback_font,Vector2(f.x-25,f.y),f.text,HORIZONTAL_ALIGNMENT_LEFT,-1,19,f.color)
+ 
+ func _update_passthrough() -> void:
+-    if hud == null: return
+-    var regions: Array[Rect2] = [Rect2(0,0,535,142),Rect2(pet_x-58,y_base-110,116,135)]
+-    if not mob.is_empty(): regions.append(Rect2(float(mob.x)-50,y_base-112,100,145))
+-    if dialog.visible: regions.append(Rect2(0,135,535,470))
+-    # A single polygon covering the gameplay/HUD strip: Windows/macOS can interact
+-    # with normal desktop above it. The main area remains transparent.
+-    # This is a deliberately conservative hit-test region to avoid input trapping.
+-    var min_y := minf(screen_size.y-190, 140 if dialog.visible else screen_size.y-190)
+-    var poly := PackedVector2Array([
+-        Vector2(0,0),Vector2(535,0),Vector2(535,135),
+-        Vector2(535,min_y),Vector2(screen_size.x,min_y),
+-        Vector2(screen_size.x,screen_size.y),Vector2(0,screen_size.y)
+-    ])
+-    get_window().mouse_passthrough_polygon = poly
++    # Full-screen hit-test polygons are intentionally no longer used.
++    # The experimental overlay is all-pass-through; UI lives in a separate window.
++    if desktop_mode:
++        get_window().mouse_passthrough = true
+ 
+ func _pet_texture(id: String, state: String, frame: int) -> Texture2D:
+     var path := "res://assets/pets/%s/%s_%d_right.png"%[id,state,frame]
+@@ -427,6 +488,8 @@
+ func _max_hp() -> int: return 60 + (int(data.level)-1)*7
+ 
+ func _float_text(s: String, px: float, py: float, col: Color) -> void:
++    if floats.size() >= MAX_FLOATS:
++        floats.pop_front()
+     floats.append({"text":s,"x":px,"y":py,"color":col,"life":1.25})
+ 
+ func _notify(s: String) -> void:
+@@ -439,22 +502,199 @@
+         stat_label.text = "  🐣 %s Lv.%d/20   💗 %d/%d   🪙 %d   %s" % [data.name,data.level,data.hp,_max_hp(),data.coins,"⚔ 사냥 중" if bool(data.hunt) else "🐾 산책 중"]
+ 
+ func _default_data() -> Dictionary:
+-    return {"character":"z_rabbit", "name":"모찌", "level":1, "xp":0, "coins":60, "hp":60, "hunger":82, "mood":80, "attack":7, "defense":2, "speed":1, "toys":0, "skills":0, "zone":0, "hunt":false, "first_run":true}
++    return SaveStore.defaults()
+ 
+ func _load_game() -> void:
+-    if not FileAccess.file_exists(SAVE_FILE): return
+-    var f := FileAccess.open(SAVE_FILE,FileAccess.READ)
+-    if f == null: return
+-    var parsed: Variant = JSON.parse_string(f.get_as_text())
+-    if parsed is Dictionary:
+-        for k in data.keys():
+-            if parsed.has(k): data[k]=parsed[k]
+-    data.level = clampi(int(data.level),1,MAX_LEVEL)
+-    data.zone = clampi(int(data.zone),0,ZONES.size()-1)
++    var result: Dictionary = save_store.load_game()
++    data = result.data
++    save_ready = result.status != "blocked"
++    startup_notice = str(result.message)
++    data.hunt = false
+ 
+ func _save_game() -> void:
+-    var f := FileAccess.open(SAVE_FILE,FileAccess.WRITE)
+-    if f: f.store_string(JSON.stringify(data,"  "))
++    # Several kills/button clicks can happen per second: coalesce disk writes.
++    if save_ready:
++        save_dirty = true
++    _refresh_ui()
+ 
+ func _exit_tree() -> void:
+-    _save_game()
++    if session_guard.acquired and save_ready and save_dirty:
++        save_store.save_game(data)
++    session_guard.release()
++
++func _flush_save() -> bool:
++    if not save_ready or not session_guard.acquired:
++        return false
++    if not save_dirty:
++        return true
++    var err: Error = save_store.save_game(data)
++    if err != OK:
++        save_retry_wait = 30.0
++        _notify("저장 실패: " + save_store.last_error)
++        message_time = 30.0
++        return false
++    save_dirty = false
++    return true
++
++func _build_confirmations() -> void:
++    reset_confirm = ConfirmationDialog.new()
++    reset_confirm.title = "처음부터 다시 시작할까요?"
++    reset_confirm.dialog_text = "캐릭터·레벨·코인·스킬이 초기화됩니다.\n현재 기록은 초기화 전 백업 1개로 보관합니다.\n반복 초기화하면 그 백업도 마지막 기록으로 교체됩니다."
++    reset_confirm.ok_button_text = "백업 후 초기화"
++    reset_confirm.cancel_button_text = "취소"
++    ui_layer.add_child(reset_confirm)
++    reset_confirm.confirmed.connect(_reset_confirmed)
++    quit_confirm = ConfirmationDialog.new()
++    quit_confirm.title = "저장되지 않은 변경 사항"
++    quit_confirm.dialog_text = "저장에 실패했습니다. 이전 기록은 보존됩니다.\n취소하면 다시 저장할 수 있습니다. 저장하지 않고 종료할까요?"
++    quit_confirm.ok_button_text = "저장 없이 종료"
++    quit_confirm.cancel_button_text = "취소"
++    ui_layer.add_child(quit_confirm)
++    quit_confirm.confirmed.connect(func():
++        save_dirty = false
++        quitting = true
++        get_tree().quit()
++    )
++
++func _reset_confirmed() -> void:
++    if save_ready and save_dirty and not _flush_save():
++        _notify("현재 기록 저장에 실패하여 초기화를 중단했습니다.")
++        return
++    var err: Error = save_store.begin_new_game()
++    if err != OK:
++        _notify("기록 보존에 실패하여 초기화를 중단했습니다: " + error_string(err))
++        message_time = 30.0
++        return
++    data = SaveStore.defaults()
++    save_ready = true
++    save_dirty = false
++    game_paused = false
++    pause_button.text = "일시정지"
++    mob.clear()
++    floats.clear()
++    _refresh_ui()
++    _show_characters()
++
++func _request_quit() -> void:
++    if quitting:
++        return
++    game_paused = true
++    if pause_button != null:
++        pause_button.text = "계속하기"
++    if save_ready and save_dirty and not _flush_save():
++        quit_confirm.popup_centered(Vector2i(490, 220))
++        return
++    quitting = true
++    get_tree().quit()
++
++func _toggle_pause() -> void:
++    if not save_ready:
++        return
++    game_paused = not game_paused
++    pause_button.text = "계속하기" if game_paused else "일시정지"
++    if game_paused:
++        _flush_save()
++
++func _unhandled_key_input(event: InputEvent) -> void:
++    if event is InputEventKey and event.pressed and not event.echo:
++        if event.keycode == KEY_ESCAPE:
++            if desktop_mode:
++                _set_desktop_mode(false)
++            elif dialog.visible:
++                dialog.hide()
++            else:
++                _toggle_pause()
++            get_viewport().set_input_as_handled()
++
++func _ui_height() -> float:
++    if is_instance_valid(controller):
++        return float(controller.size.y)
++    return float(get_window().size.y)
++
++func _resize_layout() -> void:
++    screen_size = Vector2(get_window().size)
++    y_base = screen_size.y - 42.0
++    pet_x = clampf(pet_x, 70.0, maxf(80.0, screen_size.x - 70.0))
++    target_x = clampf(target_x, 70.0, maxf(80.0, screen_size.x - 70.0))
++    if not mob.is_empty():
++        mob.x = clampf(float(mob.x), 70.0, maxf(80.0, screen_size.x - 70.0))
++    if dialog != null:
++        dialog.custom_minimum_size.y = minf(420.0, _ui_height() - 190.0)
++    queue_redraw()
++
++func _request_desktop_mode() -> void:
++    if not bool(ProjectSettings.get_setting("mochi/experimental_desktop_overlay", false)):
++        _notify("바탕화면 모드는 운영체제별 검증 후 활성화합니다.")
++        return
++    _set_desktop_mode(not desktop_mode)
++
++func _set_desktop_mode(on: bool) -> void:
++    if on == desktop_mode:
++        return
++    var win := get_window()
++    if on:
++        if not DisplayServer.has_feature(DisplayServer.FEATURE_WINDOW_TRANSPARENCY):
++            _notify("이 환경에서는 투명 창이 지원되지 않습니다. 일반 창을 유지합니다.")
++            return
++        normal_position = win.position
++        normal_size = win.size
++        # A separate, captioned control window provides an exit route. It does
++        # not rely on a global keyboard hook or a full-screen clickable polygon.
++        controller = Window.new()
++        controller.title = "모찌펫 제어 — 닫으면 일반 창으로 복귀"
++        controller.size = Vector2i(565, 660)
++        controller.min_size = Vector2i(540, 600)
++        controller.force_native = true
++        controller.window_input.connect(_unhandled_key_input)
++        controller.always_on_top = true
++        controller.close_requested.connect(func(): _set_desktop_mode(false))
++        add_child(controller)
++        ui_layer.reparent(controller)
++        win.min_size = Vector2i(1, 1)
++        win.transparent = true
++        win.borderless = true
++        win.always_on_top = true
++        win.unfocusable = true
++        win.mouse_passthrough = true
++        get_viewport().transparent_bg = true
++        desktop_mode = true
++        _fit_desktop()
++        controller.position = win.position + Vector2i(24, 24)
++        controller.show()
++        mode_button.text = "일반 창으로 복귀"
++    else:
++        desktop_mode = false
++        win.mouse_passthrough = false
++        win.unfocusable = false
++        win.always_on_top = false
++        win.borderless = false
++        win.transparent = false
++        get_viewport().transparent_bg = false
++        ui_layer.reparent(self)
++        if is_instance_valid(controller):
++            controller.queue_free()
++        controller = null
++        win.min_size = Vector2i(720, 600)
++        var rect := DisplayServer.screen_get_usable_rect(win.current_screen)
++        win.size = normal_size
++        win.position = rect.position + Vector2i(24, 24)
++        mode_button.text = "바탕화면 모드 (시험)"
++        win.grab_focus()
++    _resize_layout()
++
++func _fit_desktop() -> void:
++    if not desktop_mode:
++        return
++    var win := get_window()
++    var count := DisplayServer.get_screen_count()
++    if count <= 0:
++        return
++    var screen := clampi(win.current_screen, 0, count - 1)
++    var rect := DisplayServer.screen_get_usable_rect(screen)
++    if rect.size.x < 600 or rect.size.y < 400:
++        _set_desktop_mode(false)
++        return
++    if win.position != rect.position:
++        win.position = rect.position
++    if win.size != rect.size:
++        win.size = rect.size
+--- /dev/null
++++ b/scripts/save_store.gd
+@@ -0,0 +1,207 @@
++extends RefCounted
++## Bounded JSON only. Never deserializes objects, runs commands, or accepts paths
++## from a save file. Backups reduce risk; this is NOT a power-loss guarantee.
++
++const SCHEMA := 1
++const LIMIT_BYTES := 65536
++const MAIN := "save.json"
++const BACKUP := "save.previous.json"
++const TEMP := "save.pending.json"
++const RESET_BACKUP := "before-reset.json"
++const PET_IDS := ["z_rat", "z_ox", "z_tiger", "z_rabbit", "z_dragon", "z_snake", "z_horse", "z_sheep", "z_monkey", "z_rooster", "z_dog", "z_pig", "m_INTJ", "m_INTP", "m_ENTJ", "m_ENTP", "m_INFJ", "m_INFP", "m_ENFJ", "m_ENFP", "m_ISTJ", "m_ISFJ", "m_ESTJ", "m_ESFJ", "m_ISTP", "m_ISFP", "m_ESTP", "m_ESFP"]
++
++var base := "user://"
++var read_only := false
++var last_error := ""
++
++func _init(directory: String = "user://") -> void:
++    # The optional subdirectory is for isolated developer tests, not player input.
++    if not directory.begins_with("user://") or ".." in directory or "\\" in directory:
++        read_only = true
++        last_error = "저장 경로가 올바르지 않습니다."
++        return
++    base = directory.trim_suffix("/") + "/"
++    if directory == "user://":
++        base = "user://"
++    var err := DirAccess.make_dir_recursive_absolute(base)
++    if err != OK and err != ERR_ALREADY_EXISTS:
++        read_only = true
++        last_error = "저장 폴더를 만들 수 없습니다."
++
++static func defaults() -> Dictionary:
++    return {"schema":SCHEMA, "character":"z_rabbit", "name":"모찌", "level":1, "xp":0, "coins":60, "hp":60, "hunger":82, "mood":80, "attack":7, "defense":2, "speed":1, "toys":0, "skills":0, "zone":0, "hunt":false, "first_run":true}
++
++static func _bounded(value: Variant, low: int, high: int, fallback: int) -> int:
++    if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
++        return fallback
++    var number := float(value)
++    if not is_finite(number):
++        return fallback
++    return int(clampf(number, float(low), float(high)))
++
++static func sanitize(value: Variant) -> Dictionary:
++    var clean := defaults()
++    if not value is Dictionary:
++        return clean
++    var source: Dictionary = value
++    var id: Variant = source.get("character")
++    if id is String and id in PET_IDS:
++        clean.character = id
++    var name_value: Variant = source.get("name")
++    if name_value is String:
++        var text := ""
++        for i in range(mini(name_value.length(), 96)):
++            var c: int = name_value.unicode_at(i)
++            if c >= 32 and c != 127 and not (c >= 0x202a and c <= 0x202e) and not (c >= 0x2066 and c <= 0x2069):
++                text += String.chr(c)
++        text = text.strip_edges().left(24)
++        if not text.is_empty():
++            clean.name = text
++    clean.level = _bounded(source.get("level"), 1, 20, 1)
++    clean.xp = _bounded(source.get("xp"), 0, 35 + int(clean.level) * 20 - 1, 0)
++    if clean.level == 20:
++        clean.xp = 0
++    clean.coins = _bounded(source.get("coins"), 0, 9999999, 60)
++    clean.hp = _bounded(source.get("hp"), 0, 60 + (int(clean.level) - 1) * 7, 60)
++    clean.hunger = _bounded(source.get("hunger"), 0, 100, 82)
++    clean.mood = _bounded(source.get("mood"), 0, 100, 80)
++    clean.attack = _bounded(source.get("attack"), 1, 200, 7)
++    clean.defense = _bounded(source.get("defense"), 0, 100, 2)
++    clean.speed = _bounded(source.get("speed"), 1, 20, 1)
++    clean.toys = _bounded(source.get("toys"), 0, 99, 0)
++    clean.skills = _bounded(source.get("skills"), 0, 20, 0)
++    clean.zone = _bounded(source.get("zone"), 0, 3, 0)
++    var min_levels := [1, 5, 10, 15]
++    if int(clean.level) < int(min_levels[int(clean.zone)]):
++        clean.zone = 0
++    # Hunting never resumes silently at application launch.
++    clean.hunt = false
++    var first: Variant = source.get("first_run")
++    if first is bool:
++        clean.first_run = first
++    return clean
++
++func _path(name: String) -> String:
++    return base + name
++
++func _read(name: String) -> Dictionary:
++    var path := _path(name)
++    if not FileAccess.file_exists(path):
++        return {"status":"missing"}
++    var file := FileAccess.open(path, FileAccess.READ)
++    if file == null:
++        return {"status":"unreadable"}
++    if file.get_length() > LIMIT_BYTES:
++        file.close()
++        return {"status":"oversize"}
++    var text := file.get_as_text()
++    file.close()
++    var json := JSON.new()
++    if json.parse(text) != OK or not json.data is Dictionary:
++        return {"status":"invalid"}
++    var raw: Dictionary = json.data
++    if not raw.has("character") or not raw.has("level"):
++        return {"status":"invalid"}
++    var version: Variant = raw.get("schema", 1)
++    if typeof(version) != TYPE_FLOAT and typeof(version) != TYPE_INT:
++        return {"status":"invalid"}
++    if not is_finite(float(version)):
++        return {"status":"invalid"}
++    if float(version) > SCHEMA:
++        return {"status":"future"}
++    if float(version) != SCHEMA:
++        return {"status":"invalid"}
++    return {"status":"ok", "data":sanitize(raw)}
++
++func load_game() -> Dictionary:
++    if read_only:
++        return {"data":defaults(), "status":"blocked", "message":last_error}
++    var main := _read(MAIN)
++    if main.status == "future":
++        read_only = true
++        last_error = "새 버전의 저장 기록입니다. 이 버전으로 덮어쓰지 않습니다."
++        return {"data":defaults(), "status":"blocked", "message":last_error}
++    if main.status == "ok":
++        return {"data":main.data, "status":"ok", "message":""}
++    for name in [BACKUP, TEMP]:
++        var alternative := _read(name)
++        if alternative.status == "ok":
++            return {"data":alternative.data, "status":"recovered", "message":"이전 정상 저장 기록을 복구했습니다. 일부 최근 진행은 없을 수 있습니다."}
++    if main.status == "missing" and _read(BACKUP).status == "missing" and _read(TEMP).status == "missing":
++        return {"data":defaults(), "status":"new", "message":""}
++    read_only = true
++    last_error = "저장 파일을 읽을 수 없어 기록을 보호했습니다. 자동 덮어쓰기는 중단됩니다."
++    return {"data":defaults(), "status":"blocked", "message":last_error}
++
++func _write_checked(name: String, value: Dictionary) -> Error:
++    var text := JSON.stringify(sanitize(value), "  ")
++    if text.to_utf8_buffer().size() > LIMIT_BYTES:
++        return ERR_OUT_OF_MEMORY
++    var file := FileAccess.open(_path(name), FileAccess.WRITE)
++    if file == null:
++        return FileAccess.get_open_error()
++    file.store_string(text)
++    file.flush()
++    var err := file.get_error()
++    file.close()
++    if err != OK:
++        return err
++    var check := _read(name)
++    if check.status != "ok" or JSON.stringify(check.data) != JSON.stringify(sanitize(value)):
++        return ERR_FILE_CORRUPT
++    return OK
++
++func save_game(value: Dictionary) -> Error:
++    if read_only:
++        return ERR_UNAUTHORIZED
++    # Write and reopen the temporary file BEFORE replacing any good copy.
++    var err := _write_checked(TEMP, value)
++    if err != OK:
++        last_error = "임시 저장 실패: %s" % error_string(err)
++        return err
++    var current := _read(MAIN)
++    if current.status == "future":
++        read_only = true
++        last_error = "다른 버전의 저장 기록이 발견되어 저장을 중단했습니다."
++        return ERR_UNAUTHORIZED
++    if current.status == "ok":
++        err = _write_checked("backup.pending.json", current.data)
++        if err != OK:
++            last_error = "백업 생성에 실패하여 원본 교체를 중단했습니다."
++            return err
++        err = DirAccess.rename_absolute(_path("backup.pending.json"), _path(BACKUP))
++        if err != OK:
++            last_error = "백업 교체에 실패하여 원본을 유지했습니다."
++            return err
++    err = DirAccess.rename_absolute(_path(TEMP), _path(MAIN))
++    if err != OK:
++        last_error = "저장 교체에 실패했습니다. 이전 기록과 임시 파일은 보존했습니다."
++        return err
++    last_error = ""
++    return OK
++
++func begin_new_game() -> Error:
++    # Call only after a visible user confirmation. Preserve a fixed, bounded
++    # pre-reset snapshot. A future-format save must never be reset by this build.
++    if _read(MAIN).status == "future":
++        return ERR_UNAUTHORIZED
++    var exists := FileAccess.file_exists(_path(MAIN))
++    if exists:
++        var file := FileAccess.open(_path(MAIN), FileAccess.READ)
++        if file == null:
++            return ERR_FILE_CANT_OPEN
++        var size := file.get_length()
++        file.close()
++        if size > LIMIT_BYTES:
++            return ERR_INVALID_DATA
++        var copy_err := DirAccess.copy_absolute(_path(MAIN), _path("reset.pending.json"))
++        if copy_err != OK:
++            return copy_err
++        var original_hash := FileAccess.get_sha256(_path(MAIN))
++        if original_hash.is_empty() or original_hash != FileAccess.get_sha256(_path("reset.pending.json")):
++            return ERR_FILE_CORRUPT
++        copy_err = DirAccess.rename_absolute(_path("reset.pending.json"), _path(RESET_BACKUP))
++        if copy_err != OK:
++            return copy_err
++    read_only = false
++    return save_game(defaults())
+--- /dev/null
++++ b/scripts/session_guard.gd
+@@ -0,0 +1,59 @@
++extends RefCounted
++## Atomic directory creation serializes instances without listening on any port.
++## Invalid/stale metadata fails closed; no broad directory deletion is used.
++const LOCK_DIR := "user://session.lock"
++const OWNER := LOCK_DIR + "/owner.json"
++var acquired := false
++
++func acquire() -> bool:
++    for attempt in range(2):
++        var err := DirAccess.make_dir_absolute(LOCK_DIR)
++        if err == OK:
++            var f := FileAccess.open(OWNER, FileAccess.WRITE)
++            if f == null:
++                DirAccess.remove_absolute(LOCK_DIR)
++                return false
++            f.store_string(JSON.stringify({"pid":OS.get_process_id()}))
++            f.flush()
++            var write_err := f.get_error()
++            f.close()
++            if write_err != OK:
++                DirAccess.remove_absolute(OWNER)
++                DirAccess.remove_absolute(LOCK_DIR)
++                return false
++            acquired = true
++            return true
++        var previous := _owner_pid()
++        if previous <= 0 or OS.is_process_running(previous):
++            return false
++        # Only our two known lock paths are removed. Never traverse contents.
++        if DirAccess.remove_absolute(OWNER) != OK:
++            return false
++        if DirAccess.remove_absolute(LOCK_DIR) != OK:
++            return false
++    return false
++
++func _owner_pid() -> int:
++    var f := FileAccess.open(OWNER, FileAccess.READ)
++    if f == null:
++        return -1
++    if f.get_length() > 1024:
++        f.close()
++        return -1
++    var raw := f.get_as_text()
++    f.close()
++    var value: Variant = JSON.parse_string(raw)
++    if not value is Dictionary:
++        return -1
++    var pid: Variant = value.get("pid")
++    if typeof(pid) != TYPE_INT and typeof(pid) != TYPE_FLOAT:
++        return -1
++    if not is_finite(float(pid)) or float(pid) <= 0 or float(pid) > 2147483647:
++        return -1
++    return int(pid)
++
++func release() -> void:
++    if acquired and _owner_pid() == OS.get_process_id():
++        DirAccess.remove_absolute(OWNER)
++        DirAccess.remove_absolute(LOCK_DIR)
++    acquired = false
+--- /dev/null
++++ b/tests/static_audit.py
+@@ -0,0 +1,136 @@
++#!/usr/bin/env python3
++"""Static policy/resource checks. NOT a GDScript parser, antivirus, or runtime test.
++Uses the Python standard library only; safe to run on an isolated source checkout.
++"""
++from __future__ import annotations
++import argparse
++import ast
++import hashlib
++import json
++import re
++import struct
++import sys
++import zlib
++from pathlib import Path
++
++
++def audit(root: Path) -> dict:
++    checks: list[dict[str, object]] = []
++    def check(name: str, ok: bool, detail: str = '') -> None:
++        checks.append({'name': name, 'passed': bool(ok), 'detail': detail})
++    main = (root/'scripts/main.gd').read_text(encoding='utf-8')
++    save = (root/'scripts/save_store.gd').read_text(encoding='utf-8')
++    guard = (root/'scripts/session_guard.gd').read_text(encoding='utf-8')
++    project = (root/'project.godot').read_text(encoding='utf-8')
++    nsis = (root/'packaging/installer.nsi').read_text(encoding='utf-8')
++    build = (root/'packaging/build_windows.ps1').read_text(encoding='utf-8')
++    export = (root/'export_presets.cfg').read_text(encoding='utf-8')
++    game = '\n'.join((main, save, guard))
++    # Lexical rules are intentionally conservative and not a malware verdict.
++    network = re.search(r'\b(HTTPRequest|HTTPClient|WebSocketPeer|ENetMultiplayerPeer|TCPServer|UDPServer|PacketPeerUDP|StreamPeerTCP|WebRTCPeerConnection|WebSocketMultiplayerPeer)\b', game)
++    check('no_game_network_API_tokens', network is None)
++    check('no_shell_or_external_process_launch', not re.search(r'OS\.(execute|create_process|shell_open|shell_show_in_file_manager)|Expression\.new|load_resource_pack|bytes_to_var|str_to_var|get_var\(', game))
++    check('no_input_hooks_or_capture_API_tokens', not re.search(r'get_screen_capture|screen_get_image|AudioEffectRecord|CameraServer|set_mouse_mode|Input\.is_physical_key_pressed', game))
++    check('normal_window_startup', all(s in project for s in ('window/size/transparent=false','window/size/borderless=false','window/size/always_on_top=false')))
++    check('overlay_opt_in_gate_is_disabled', 'experimental_desktop_overlay=false' in project and 'mode_button.disabled = not bool(ProjectSettings.get_setting(' in main)
++    check('no_fullscreen_hit_polygon', 'mouse_passthrough_polygon =' not in main)
++    check('frame_and_effect_limits', all(s in main for s in ('const FPS_ACTIVE := 30','const FPS_PAUSED := 10','const MAX_FLOATS := 24','floats.pop_front()')))
++    check('minimized_pause', 'Window.MODE_MINIMIZED' in main and 'game_paused or minimized' in main)
++    check('captioned_window_close_handler', 'win.close_requested.connect(_request_quit)' in main)
++    check('single_instance_file_guard', 'DirAccess.make_dir_absolute(LOCK_DIR)' in guard and 'OS.is_process_running(previous)' in guard)
++    check('save_size_and_schema_guards', all(s in save for s in ('const LIMIT_BYTES := 65536','file.get_length() > LIMIT_BYTES','"future"','read_only = true')))
++    check('save_schema_types_finite_and_bounds', 'is_finite(number)' in save and 'TYPE_FLOAT' in save and 'clampf(number' in save)
++    check('temporary_write_reopen_and_backup', all(s in save for s in ('_write_checked(TEMP, value)','_read(name)','save.previous.json','DirAccess.rename_absolute(_path(TEMP), _path(MAIN))')))
++    check('reset_confirmation_and_backup', 'reset_confirm.confirmed.connect(_reset_confirmed)' in main and 'before-reset.json' in save and 'get_sha256' in save)
++    check('no_auto_hunt_resume', 'data.hunt = false' in main and 'clean.hunt = false' in save)
++    check('save_coalescing', 'autosave_time >= 10.0' in main and 'save_retry_wait = 30.0' in main)
++    check('separate_app_data_folder', 'config/custom_user_dir_name="MochiPetRPG/desktop-v041"' in project)
++    check('unbounded_engine_file_logs_disabled', 'file_logging/enable_file_logging.pc=false' in project)
++    check('installer_requests_user_not_admin', 'RequestExecutionLevel user' in nsis and 'RequestExecutionLevel admin' not in nsis)
++    # Strip comments to avoid false positives for the installer-policy prose.
++    nsis_code = '\n'.join(l for l in nsis.splitlines() if not l.lstrip().startswith(';'))
++    ps_code = '\n'.join(l for l in build.splitlines() if not l.lstrip().startswith('#'))
++    check('installer_is_offline', not re.search(r'inetc::|NSISdl::|nsExec::|ExecWait|(?im:^\s*Exec\b)|https?://', nsis_code))
++    check('builder_no_download_or_policy_change', not re.search(r'Invoke-WebRequest|Start-BitsTransfer|Invoke-Expression|Set-ExecutionPolicy|Set-MpPreference|Add-MpPreference|ExecutionPolicy\s+Bypass', ps_code, re.I))
++    check('installer_no_machinewide_or_autorun_changes', not re.search(r'\bHKLM\b|CurrentVersion\\Run|schtasks|netsh|regsvr32|MpPreference|Firewall', nsis_code, re.I))
++    check('installer_postinstall_launch_opt_in', '!define MUI_FINISHPAGE_RUN_NOTCHECKED' in nsis)
++    check('uninstall_no_recursive_delete_or_save_delete', 'RMDir /r' not in nsis_code and '$APPDATA' not in nsis_code and 'desktop-v041' not in nsis_code)
++    check('developer_tests_gate_export', build.index('test_save_store.gd') < build.index('--export-release') and build.index('test_resources.gd') < build.index('--export-release'))
++    check('export_excludes_developer_tools', 'tests/*,docs/*,packaging/*' in export and 'binary_format/embed_pck=false' in export)
++    check('no_user_save_data_bundled', not any(p.name in {'save.json','mochipet_desktop_save.json','owner.json'} for p in root.rglob('*') if p.is_file()))
++    check('no_executable_bundled_in_source', not any(p.suffix.lower() in {'.exe','.dll','.so','.dylib'} for p in root.rglob('*') if p.is_file()))
++    # Asset paths are fixed strings and whitelist identifiers, never save-derived paths.
++    ids_match = re.search(r'const PET_IDS := (\[.*\])', save)
++    ids = ast.literal_eval(ids_match.group(1)) if ids_match else []
++    char_ids = re.findall(r'^\s*\["((?:z_|m_)[^"]+)"', main, re.M)
++    # There are two array entries per line in the original character catalog.
++    catalog = main[main.index('const CHARACTERS :='):main.index('const ZONES :=')]
++    char_ids = re.findall(r'\["((?:z_|m_)[^"]+)"', catalog)
++    check('character_whitelist_consistent', len(ids)==28 and len(set(ids))==28 and set(ids)==set(char_ids))
++    files = []
++    for pet_id in ids:
++        for state in ('idle','walk','play','eat','happy','sad','sleep'):
++            for frame in range(2):
++                files.append(root/f'assets/pets/{pet_id}/{state}_{frame}_right.png')
++    for monster in ('slime','mushroom','bat','foxfire','golem','shade','ghost','moon'):
++        files.append(root/f'assets/monsters/{monster}.png')
++    check('all_400_asset_paths_exist', len(files)==400 and all(p.is_file() for p in files))
++    image_errors = []
++    asset_hashes = {}
++    for p in files:
++        if not p.is_file():
++            image_errors.append(str(p.relative_to(root)))
++            continue
++        data = p.read_bytes()
++        asset_hashes[str(p.relative_to(root))] = hashlib.sha256(data).hexdigest()
++        try:
++            if data[:8] != b'\x89PNG\r\n\x1a\n':
++                raise ValueError('signature')
++            width, height = struct.unpack('>II', data[16:24])
++            if not (1 <= width <= 4096 and 1 <= height <= 4096):
++                raise ValueError('dimensions')
++            offset, end = 8, False
++            while offset < len(data):
++                length = struct.unpack_from('>I', data, offset)[0]
++                tag = data[offset+4:offset+8]
++                contents = data[offset+8:offset+8+length]
++                crc = struct.unpack_from('>I', data, offset+8+length)[0]
++                if zlib.crc32(tag+contents)&0xffffffff != crc:
++                    raise ValueError('CRC')
++                offset += length + 12
++                if tag == b'IEND':
++                    end = True
++                    break
++            if not end:
++                raise ValueError('IEND')
++        except (ValueError, struct.error) as exc:
++            image_errors.append(f'{p.relative_to(root)}: {exc}')
++    check('png_chunk_integrity_and_dimensions', not image_errors, '; '.join(image_errors[:3]))
++    check('no_duplicate_gd_functions', all(len(re.findall(r'^func (\w+)\(', text, re.M)) == len(set(re.findall(r'^func (\w+)\(', text, re.M))) for text in (main,save,guard)))
++    return {
++        'scope': 'Static lexical policy, package layout, and PNG integrity checks only. No GDScript execution or malware scan.',
++        'checks': checks,
++        'total': len(checks),
++        'passed': sum(bool(c['passed']) for c in checks),
++        'asset_files': len(asset_hashes),
++        'asset_sha256': asset_hashes,
++        'not_tested': ['Godot parse/runtime', 'NSIS compile/install/uninstall', 'Windows/macOS GUI', 'Defender/third-party antivirus', 'network capture', 'battery/CPU benchmarks', 'disk-full/power-loss', 'SmartScreen/signing'],
++    }
++
++
++def main() -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
++    parser.add_argument('--report', type=Path)
++    args = parser.parse_args()
++    result = audit(args.root.resolve())
++    for item in result['checks']:
++        print(('PASS' if item['passed'] else 'FAIL'), item['name'])
++    print(f"STATIC ONLY: {result['passed']}/{result['total']} checks; {result['asset_files']} PNG files")
++    if args.report:
++        args.report.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
++    return 0 if result['passed'] == result['total'] else 1
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+--- /dev/null
++++ b/tests/test_resources.gd
+@@ -0,0 +1,25 @@
++extends SceneTree
++const Store := preload("res://scripts/save_store.gd")
++var failures := 0
++var checked := 0
++
++func _init() -> void:
++    for id in Store.PET_IDS:
++        for state in ["idle", "walk", "play", "eat", "happy", "sad", "sleep"]:
++            for frame in range(2):
++                check_texture("res://assets/pets/%s/%s_%d_right.png" % [id, state, frame])
++    for mob in ["slime", "mushroom", "bat", "foxfire", "golem", "shade", "ghost", "moon"]:
++        check_texture("res://assets/monsters/%s.png" % mob)
++    print("RESOURCE_TESTS checked=", checked, " failures=", failures)
++    quit(0 if failures == 0 else 1)
++
++func check_texture(path: String) -> void:
++    checked += 1
++    if not ResourceLoader.exists(path):
++        failures += 1
++        printerr("Missing texture: ", path)
++        return
++    var texture: Texture2D = load(path)
++    if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
++        failures += 1
++        printerr("Invalid texture: ", path)
+--- /dev/null
++++ b/tests/test_save_store.gd
+@@ -0,0 +1,75 @@
++extends SceneTree
++## Run with Godot 4.7.2: --headless --path . --script tests/test_save_store.gd
++## This native test was provided, NOT executed in the assistant's environment.
++const Store := preload("res://scripts/save_store.gd")
++var failed := 0
++var checks := 0
++var root_dir := ""
++
++func expect(ok: bool, message: String) -> void:
++    checks += 1
++    if not ok:
++        failed += 1
++        printerr("FAIL: ", message)
++
++func write_raw(name: String, text: String) -> void:
++    var f := FileAccess.open(root_dir + name, FileAccess.WRITE)
++    expect(f != null, "test file open")
++    if f != null:
++        f.store_string(text)
++        f.close()
++
++func _init() -> void:
++    root_dir = "user://qa-save-%d/" % OS.get_process_id()
++    var store := Store.new(root_dir)
++    expect(store.load_game().status == "new", "new game")
++    var d: Dictionary = Store.defaults()
++    expect(store.save_game(d) == OK, "first save")
++    d.coins = 120
++    expect(store.save_game(d) == OK, "second save")
++    expect(store.load_game().data.coins == 120, "latest value")
++    write_raw(Store.MAIN, "{truncated")
++    var recovered: Dictionary = store.load_game()
++    expect(recovered.status == "recovered", "corruption falls back to backup")
++    expect(recovered.data.coins == 60, "previous good value survives")
++    expect(store.save_game(recovered.data) == OK, "repair without clobbering backup")
++    var bad := {"character":"../../secrets", "name":"\\u0000", "level":999999, "coins":-6, "zone":500, "hp":INF, "speed":[], "skills":{}, "attack":"a", "first_run":"false", "new_field":123, "hunt":true}
++    var clean: Dictionary = Store.sanitize(bad)
++    expect(clean.character == "z_rabbit", "path-like pet identifier rejected")
++    expect(clean.level == 20 and clean.xp == 0, "level cap")
++    expect(clean.coins == 0 and clean.speed == 1, "bounds and types")
++    expect(clean.attack == 7 and clean.skills == 0, "bad stat types")
++    expect(not clean.hunt and clean.first_run, "boolean validation; no auto hunting")
++    expect(not clean.has("new_field"), "unknown keys discarded")
++    expect(Store.sanitize({"level":1, "zone":3}).zone == 0, "locked zone")
++    expect(Store.sanitize({"name":"x".repeat(400)}).name.length() == 24, "name bound")
++    expect(Store.sanitize({"hp":NAN}).hp == 60, "NaN rejected")
++    expect(Store.sanitize({"speed":INF}).speed == 1, "infinite number rejected")
++    var before := FileAccess.get_sha256(root_dir + Store.MAIN)
++    expect(store.begin_new_game() == OK, "explicit reset")
++    expect(FileAccess.get_sha256(root_dir + Store.RESET_BACKUP) == before, "pre-reset byte copy")
++    expect(store.load_game().data.coins == 60, "reset value")
++    write_raw(Store.MAIN, JSON.stringify({"schema":999, "character":"z_rat", "level":1}))
++    before = FileAccess.get_sha256(root_dir + Store.MAIN)
++    expect(store.load_game().status == "blocked", "future schema blocked")
++    expect(store.save_game(d) == ERR_UNAUTHORIZED, "future data never overwritten")
++    expect(store.begin_new_game() == ERR_UNAUTHORIZED, "future reset blocked")
++    expect(FileAccess.get_sha256(root_dir + Store.MAIN) == before, "future data intact")
++    write_raw(Store.MAIN, "x".repeat(Store.LIMIT_BYTES + 1))
++    store = Store.new(root_dir)
++    expect(store.load_game().status == "recovered", "oversized main recovers backup")
++    expect(store.begin_new_game() == ERR_INVALID_DATA, "oversized reset fails closed")
++    for file in [Store.MAIN, Store.BACKUP, Store.TEMP, Store.RESET_BACKUP, "backup.pending.json", "reset.pending.json"]:
++        if FileAccess.file_exists(root_dir + file):
++            DirAccess.remove_absolute(root_dir + file)
++    write_raw(Store.MAIN, "not json")
++    store = Store.new(root_dir)
++    expect(store.load_game().status == "blocked", "unrecoverable save locks writes")
++    expect(store.save_game(d) == ERR_UNAUTHORIZED, "no silent reset")
++    expect(store.begin_new_game() == OK, "explicit reset preserves damaged main")
++    for file in [Store.MAIN, Store.BACKUP, Store.TEMP, Store.RESET_BACKUP, "backup.pending.json", "reset.pending.json"]:
++        if FileAccess.file_exists(root_dir + file):
++            DirAccess.remove_absolute(root_dir + file)
++    DirAccess.remove_absolute(root_dir)
++    print("SAVE_TESTS checks=", checks, " failures=", failed)
++    quit(0 if failed == 0 else 1)

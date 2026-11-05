@@ -1,0 +1,2063 @@
+{
+  "source_archive": "MochiPet_Godot_v0.4.1_Security_Review_Source.zip",
+  "source_archive_sha256": "855bbbb393abcea2a5753c2b051ebe2eeb1527c9de2cabebd013390353477ad7",
+  "scope": "Original game assets, runtime, configuration, packaging and tests preserved byte-for-byte. New repository docs/metadata/tests are separate.",
+  "preserved_file_count": 411,
+  "files": [
+    {
+      "path": "assets/monsters/bat.png",
+      "sha256": "b6895a8fee87aee274ad181763581a8abec72442cc4bb4e35c6a2eb1900c245e",
+      "bytes": 11443
+    },
+    {
+      "path": "assets/monsters/foxfire.png",
+      "sha256": "e36bba41e962661b312dc95c56bedc35ac38276e0f6d2b459167cd4b5853664b",
+      "bytes": 9574
+    },
+    {
+      "path": "assets/monsters/ghost.png",
+      "sha256": "bd60171c1cdfe0e0a46f6f7059cd4016b4d45463f2346df9c9bd70bcd9309b25",
+      "bytes": 8552
+    },
+    {
+      "path": "assets/monsters/golem.png",
+      "sha256": "007ff33279ca9dbcf0977178bfe4f2369b95c0943fd1bfff79ca79be476b5910",
+      "bytes": 8008
+    },
+    {
+      "path": "assets/monsters/moon.png",
+      "sha256": "f1870e7ae26999d6e340f51d6cec54c076125b96e2d3e9630ba12a0ab4668242",
+      "bytes": 9603
+    },
+    {
+      "path": "assets/monsters/mushroom.png",
+      "sha256": "af0c6e8cb36ddcec5e24ebff8de8707c0dc41d17fa291251d86c6b2154605748",
+      "bytes": 10179
+    },
+    {
+      "path": "assets/monsters/shade.png",
+      "sha256": "37de99527f359e03cab6a7ac81cd3bd64a7d71798ddd1f555776266ce1e1777a",
+      "bytes": 8391
+    },
+    {
+      "path": "assets/monsters/slime.png",
+      "sha256": "d6d586af82ea40d25688b5138f736cf220ab0f35fbd52c0a2871f7ab646e0739",
+      "bytes": 8684
+    },
+    {
+      "path": "assets/pets/m_ENFJ/eat_0_right.png",
+      "sha256": "c7c8fd00ed15a3a3951b1e07d84e3b8e62baad6b803bb3590ed4111622125169",
+      "bytes": 12073
+    },
+    {
+      "path": "assets/pets/m_ENFJ/eat_1_right.png",
+      "sha256": "c7c8fd00ed15a3a3951b1e07d84e3b8e62baad6b803bb3590ed4111622125169",
+      "bytes": 12073
+    },
+    {
+      "path": "assets/pets/m_ENFJ/happy_0_right.png",
+      "sha256": "d220c09be0a173772487d1339fe32fed56596731a70e3a3f621008f833865fe9",
+      "bytes": 12191
+    },
+    {
+      "path": "assets/pets/m_ENFJ/happy_1_right.png",
+      "sha256": "58e3a91f460b850e19db7a09fe4dbb58c798ae08d3983698057eb1304abcecc0",
+      "bytes": 12183
+    },
+    {
+      "path": "assets/pets/m_ENFJ/idle_0_right.png",
+      "sha256": "2ea32a5b70be88ef5ce4db77a384ed5f374adf2e5385bf5474e52260cc53fede",
+      "bytes": 12139
+    },
+    {
+      "path": "assets/pets/m_ENFJ/idle_1_right.png",
+      "sha256": "2ea32a5b70be88ef5ce4db77a384ed5f374adf2e5385bf5474e52260cc53fede",
+      "bytes": 12139
+    },
+    {
+      "path": "assets/pets/m_ENFJ/play_0_right.png",
+      "sha256": "35778dcc1ce6cd4ffa0009530ec8ee58002d1c80b3fb6a832ceb5089219d2f28",
+      "bytes": 12055
+    },
+    {
+      "path": "assets/pets/m_ENFJ/play_1_right.png",
+      "sha256": "df8ad3aadca37701f596b837240d0205d9319bd94035994ca39067eda35cf5a1",
+      "bytes": 12038
+    },
+    {
+      "path": "assets/pets/m_ENFJ/sad_0_right.png",
+      "sha256": "7f80a4c06e439391a450724566ca2834c50637ea06905cc196e236f636a1a056",
+      "bytes": 12191
+    },
+    {
+      "path": "assets/pets/m_ENFJ/sad_1_right.png",
+      "sha256": "7f80a4c06e439391a450724566ca2834c50637ea06905cc196e236f636a1a056",
+      "bytes": 12191
+    },
+    {
+      "path": "assets/pets/m_ENFJ/sleep_0_right.png",
+      "sha256": "428b323ef1a72f87eb155ad82e0d2292ee6c10cd7e3d5bf0bd56ea2576ee5e39",
+      "bytes": 10696
+    },
+    {
+      "path": "assets/pets/m_ENFJ/sleep_1_right.png",
+      "sha256": "428b323ef1a72f87eb155ad82e0d2292ee6c10cd7e3d5bf0bd56ea2576ee5e39",
+      "bytes": 10696
+    },
+    {
+      "path": "assets/pets/m_ENFJ/walk_0_right.png",
+      "sha256": "2ea32a5b70be88ef5ce4db77a384ed5f374adf2e5385bf5474e52260cc53fede",
+      "bytes": 12139
+    },
+    {
+      "path": "assets/pets/m_ENFJ/walk_1_right.png",
+      "sha256": "b0d95fd3ad081139502908a931ac23e4fe799e01d98a62e0fe084be7f5686f58",
+      "bytes": 11987
+    },
+    {
+      "path": "assets/pets/m_ENFP/eat_0_right.png",
+      "sha256": "8c849380ab35b51dd247e8e0532938738b07af0063b4c909447daf7e7448d95a",
+      "bytes": 12235
+    },
+    {
+      "path": "assets/pets/m_ENFP/eat_1_right.png",
+      "sha256": "8c849380ab35b51dd247e8e0532938738b07af0063b4c909447daf7e7448d95a",
+      "bytes": 12235
+    },
+    {
+      "path": "assets/pets/m_ENFP/happy_0_right.png",
+      "sha256": "4c6ce54fbe52485e1dac2ce0056c1d65ef6378568890539a64c180bbfe227474",
+      "bytes": 12446
+    },
+    {
+      "path": "assets/pets/m_ENFP/happy_1_right.png",
+      "sha256": "896f24a32e5a6551be3ae0ee17ed6ebc7cbe7f3da94c80e218fa0f659cfb1405",
+      "bytes": 12453
+    },
+    {
+      "path": "assets/pets/m_ENFP/idle_0_right.png",
+      "sha256": "7c81b75e13ef60d9d16315ff2c0af9ef4293b5187cb0b8f5fcc6d526aad78d00",
+      "bytes": 12375
+    },
+    {
+      "path": "assets/pets/m_ENFP/idle_1_right.png",
+      "sha256": "7c81b75e13ef60d9d16315ff2c0af9ef4293b5187cb0b8f5fcc6d526aad78d00",
+      "bytes": 12375
+    },
+    {
+      "path": "assets/pets/m_ENFP/play_0_right.png",
+      "sha256": "f9ad8dd1e5f6e5eb56a40174f14fcf975161aa23a92b71ec7d83c670aac82dc3",
+      "bytes": 12418
+    },
+    {
+      "path": "assets/pets/m_ENFP/play_1_right.png",
+      "sha256": "d7f2fa2422ac0d2b79da84455dc5b9d4ab7a1fe1a8b593131d7a3257e56b3988",
+      "bytes": 12311
+    },
+    {
+      "path": "assets/pets/m_ENFP/sad_0_right.png",
+      "sha256": "73f6feb6ae3eb4c7ccba96d7c66f642337658acb74bd32bea15429af6a0d316a",
+      "bytes": 12417
+    },
+    {
+      "path": "assets/pets/m_ENFP/sad_1_right.png",
+      "sha256": "73f6feb6ae3eb4c7ccba96d7c66f642337658acb74bd32bea15429af6a0d316a",
+      "bytes": 12417
+    },
+    {
+      "path": "assets/pets/m_ENFP/sleep_0_right.png",
+      "sha256": "c1d15a065e12620091b209bab217778abc52a301716955e1a5a80ba7d5a299af",
+      "bytes": 10236
+    },
+    {
+      "path": "assets/pets/m_ENFP/sleep_1_right.png",
+      "sha256": "c1d15a065e12620091b209bab217778abc52a301716955e1a5a80ba7d5a299af",
+      "bytes": 10236
+    },
+    {
+      "path": "assets/pets/m_ENFP/walk_0_right.png",
+      "sha256": "7c81b75e13ef60d9d16315ff2c0af9ef4293b5187cb0b8f5fcc6d526aad78d00",
+      "bytes": 12375
+    },
+    {
+      "path": "assets/pets/m_ENFP/walk_1_right.png",
+      "sha256": "5e669c8b34a7a7ea42d05154ab67e2609a8e08486736a549d6cb59ce54f58f89",
+      "bytes": 12203
+    },
+    {
+      "path": "assets/pets/m_ENTJ/eat_0_right.png",
+      "sha256": "18e24c461092b7751190d097a8e8334b3aaff07888c9d02f304113120f788456",
+      "bytes": 12869
+    },
+    {
+      "path": "assets/pets/m_ENTJ/eat_1_right.png",
+      "sha256": "18e24c461092b7751190d097a8e8334b3aaff07888c9d02f304113120f788456",
+      "bytes": 12869
+    },
+    {
+      "path": "assets/pets/m_ENTJ/happy_0_right.png",
+      "sha256": "7392e88bed97f7d873fcd60c0df87dec7653173c39887f04c355b47229a3e134",
+      "bytes": 13026
+    },
+    {
+      "path": "assets/pets/m_ENTJ/happy_1_right.png",
+      "sha256": "b574e62748b2fd93330b4321e2caf5177a466ef250d5620db3a64cb71c30bdea",
+      "bytes": 13030
+    },
+    {
+      "path": "assets/pets/m_ENTJ/idle_0_right.png",
+      "sha256": "5eb31e0865bf9852efd2ff3e38b1f6b578d02a4bf93c8462893ff9e0830851be",
+      "bytes": 13002
+    },
+    {
+      "path": "assets/pets/m_ENTJ/idle_1_right.png",
+      "sha256": "5eb31e0865bf9852efd2ff3e38b1f6b578d02a4bf93c8462893ff9e0830851be",
+      "bytes": 13002
+    },
+    {
+      "path": "assets/pets/m_ENTJ/play_0_right.png",
+      "sha256": "bd3fe65f8e628cf37731e05997f719dabb968b9d32944a9d686b6058df5b0246",
+      "bytes": 12987
+    },
+    {
+      "path": "assets/pets/m_ENTJ/play_1_right.png",
+      "sha256": "5b9d6ebcad69d23ba526cb09ed9239e94dc327e1eb7f77c177ae8d4d44553583",
+      "bytes": 12878
+    },
+    {
+      "path": "assets/pets/m_ENTJ/sad_0_right.png",
+      "sha256": "718ff1bc2579b1f24d11a12e30c5df48179894d81fb821dc6b9ecaaf51a31a38",
+      "bytes": 13034
+    },
+    {
+      "path": "assets/pets/m_ENTJ/sad_1_right.png",
+      "sha256": "718ff1bc2579b1f24d11a12e30c5df48179894d81fb821dc6b9ecaaf51a31a38",
+      "bytes": 13034
+    },
+    {
+      "path": "assets/pets/m_ENTJ/sleep_0_right.png",
+      "sha256": "e68089eec052af7affd2d150193b811e85943b3ba3cf18d48112ff691d796e2f",
+      "bytes": 11154
+    },
+    {
+      "path": "assets/pets/m_ENTJ/sleep_1_right.png",
+      "sha256": "e68089eec052af7affd2d150193b811e85943b3ba3cf18d48112ff691d796e2f",
+      "bytes": 11154
+    },
+    {
+      "path": "assets/pets/m_ENTJ/walk_0_right.png",
+      "sha256": "5eb31e0865bf9852efd2ff3e38b1f6b578d02a4bf93c8462893ff9e0830851be",
+      "bytes": 13002
+    },
+    {
+      "path": "assets/pets/m_ENTJ/walk_1_right.png",
+      "sha256": "a7effbb4d708d23406ac7b8930b5086afcd0e29755b65f9589d5cacbe065697d",
+      "bytes": 12754
+    },
+    {
+      "path": "assets/pets/m_ENTP/eat_0_right.png",
+      "sha256": "3ef41b8a935707b43c4f0b5ba74326d590d4916239d7424c271ab991c51961ca",
+      "bytes": 12326
+    },
+    {
+      "path": "assets/pets/m_ENTP/eat_1_right.png",
+      "sha256": "3ef41b8a935707b43c4f0b5ba74326d590d4916239d7424c271ab991c51961ca",
+      "bytes": 12326
+    },
+    {
+      "path": "assets/pets/m_ENTP/happy_0_right.png",
+      "sha256": "f81ce8d42fa929a55b8783f3209ae67745f20fe18edc015819ade0c7e774939c",
+      "bytes": 12617
+    },
+    {
+      "path": "assets/pets/m_ENTP/happy_1_right.png",
+      "sha256": "d251b6eafd7eefd9e44bc5841523877e8e3293cb6f14f866d52daa9dc262005c",
+      "bytes": 12629
+    },
+    {
+      "path": "assets/pets/m_ENTP/idle_0_right.png",
+      "sha256": "eab3bed11e5fcdcf6d3c2b76789aa8b17690727f11a5cce8cc5bbfa4848fc6d0",
+      "bytes": 12544
+    },
+    {
+      "path": "assets/pets/m_ENTP/idle_1_right.png",
+      "sha256": "eab3bed11e5fcdcf6d3c2b76789aa8b17690727f11a5cce8cc5bbfa4848fc6d0",
+      "bytes": 12544
+    },
+    {
+      "path": "assets/pets/m_ENTP/play_0_right.png",
+      "sha256": "b8f23abe6c098ff6ff8bcd12c7b83eb45e8730d65936e1300114e7e18482602b",
+      "bytes": 12484
+    },
+    {
+      "path": "assets/pets/m_ENTP/play_1_right.png",
+      "sha256": "372728d01802a3540216ffbc52bbb8fe318a802ee30232d93b1497f2d68f79b6",
+      "bytes": 12361
+    },
+    {
+      "path": "assets/pets/m_ENTP/sad_0_right.png",
+      "sha256": "4b4bf34e95d7eb81ec64971d97c214f3a04b910d910fa4d99a3c647dc9a63775",
+      "bytes": 12590
+    },
+    {
+      "path": "assets/pets/m_ENTP/sad_1_right.png",
+      "sha256": "4b4bf34e95d7eb81ec64971d97c214f3a04b910d910fa4d99a3c647dc9a63775",
+      "bytes": 12590
+    },
+    {
+      "path": "assets/pets/m_ENTP/sleep_0_right.png",
+      "sha256": "9c27f1a4f5b54707e3edc4f5a78a9aa8a1128612f7af98f999c20d76f2d48267",
+      "bytes": 10609
+    },
+    {
+      "path": "assets/pets/m_ENTP/sleep_1_right.png",
+      "sha256": "9c27f1a4f5b54707e3edc4f5a78a9aa8a1128612f7af98f999c20d76f2d48267",
+      "bytes": 10609
+    },
+    {
+      "path": "assets/pets/m_ENTP/walk_0_right.png",
+      "sha256": "eab3bed11e5fcdcf6d3c2b76789aa8b17690727f11a5cce8cc5bbfa4848fc6d0",
+      "bytes": 12544
+    },
+    {
+      "path": "assets/pets/m_ENTP/walk_1_right.png",
+      "sha256": "6f74e030a0514d882baeae0f9f5bce7c475b4f3a37f5cd5a7125069e1c804eb3",
+      "bytes": 12666
+    },
+    {
+      "path": "assets/pets/m_ESFJ/eat_0_right.png",
+      "sha256": "6b818aeb00d153c1422a691ee5286287540e2da61329c489e6ad0ff52364bfcd",
+      "bytes": 11232
+    },
+    {
+      "path": "assets/pets/m_ESFJ/eat_1_right.png",
+      "sha256": "6b818aeb00d153c1422a691ee5286287540e2da61329c489e6ad0ff52364bfcd",
+      "bytes": 11232
+    },
+    {
+      "path": "assets/pets/m_ESFJ/happy_0_right.png",
+      "sha256": "ef175badda93d7203800e69bc3a6205f74b6560992b714d6e19da389fb6de8d9",
+      "bytes": 11452
+    },
+    {
+      "path": "assets/pets/m_ESFJ/happy_1_right.png",
+      "sha256": "66451d73b189f2acde2eb075ed3cc0fb80732d0dd357ffd085e8b553cdb6b360",
+      "bytes": 11460
+    },
+    {
+      "path": "assets/pets/m_ESFJ/idle_0_right.png",
+      "sha256": "c61f5672860f58e30f3a7751e8b80c62c148bbbc52785db3cd9ebb13b3b5b158",
+      "bytes": 11385
+    },
+    {
+      "path": "assets/pets/m_ESFJ/idle_1_right.png",
+      "sha256": "c61f5672860f58e30f3a7751e8b80c62c148bbbc52785db3cd9ebb13b3b5b158",
+      "bytes": 11385
+    },
+    {
+      "path": "assets/pets/m_ESFJ/play_0_right.png",
+      "sha256": "708b713168fc3317dfec73b797ab4373709b759b96816c6eb6f5ac260f566ff6",
+      "bytes": 11547
+    },
+    {
+      "path": "assets/pets/m_ESFJ/play_1_right.png",
+      "sha256": "754d531c0b27a730401ba4068acc9cfc399e05f4d7e2c5fc492116e71b7b5180",
+      "bytes": 11413
+    },
+    {
+      "path": "assets/pets/m_ESFJ/sad_0_right.png",
+      "sha256": "35710ee5dd6305f65d72b4ff194f3c3b173b247e26290ad1c371901485160fa8",
+      "bytes": 11425
+    },
+    {
+      "path": "assets/pets/m_ESFJ/sad_1_right.png",
+      "sha256": "35710ee5dd6305f65d72b4ff194f3c3b173b247e26290ad1c371901485160fa8",
+      "bytes": 11425
+    },
+    {
+      "path": "assets/pets/m_ESFJ/sleep_0_right.png",
+      "sha256": "1c649fb7db2f0797509aa50d47518dd58f891b7622a719f1007840ab27401ec9",
+      "bytes": 9873
+    },
+    {
+      "path": "assets/pets/m_ESFJ/sleep_1_right.png",
+      "sha256": "1c649fb7db2f0797509aa50d47518dd58f891b7622a719f1007840ab27401ec9",
+      "bytes": 9873
+    },
+    {
+      "path": "assets/pets/m_ESFJ/walk_0_right.png",
+      "sha256": "c61f5672860f58e30f3a7751e8b80c62c148bbbc52785db3cd9ebb13b3b5b158",
+      "bytes": 11385
+    },
+    {
+      "path": "assets/pets/m_ESFJ/walk_1_right.png",
+      "sha256": "21a915bad44380d471a8ed6169f4075218d55da5e11ee49a29f578d749cf864b",
+      "bytes": 11233
+    },
+    {
+      "path": "assets/pets/m_ESFP/eat_0_right.png",
+      "sha256": "c373916f8adec52dd90dddcd4921e153dfdeacdea349b0f22c96c20c4702ca41",
+      "bytes": 12004
+    },
+    {
+      "path": "assets/pets/m_ESFP/eat_1_right.png",
+      "sha256": "c373916f8adec52dd90dddcd4921e153dfdeacdea349b0f22c96c20c4702ca41",
+      "bytes": 12004
+    },
+    {
+      "path": "assets/pets/m_ESFP/happy_0_right.png",
+      "sha256": "97c2b8704dcadb5b748ca5438e9be427418a1293ddfe6d252ca44cd0decf5085",
+      "bytes": 12152
+    },
+    {
+      "path": "assets/pets/m_ESFP/happy_1_right.png",
+      "sha256": "31d5cce98d3da5670e7c720c420aef9246e50cb23ccad8bed36050858b79f6c1",
+      "bytes": 12162
+    },
+    {
+      "path": "assets/pets/m_ESFP/idle_0_right.png",
+      "sha256": "00812d72da07c3faec575c76cf58c2e0752dbbd0488d37cf6264c4e705687a5b",
+      "bytes": 12079
+    },
+    {
+      "path": "assets/pets/m_ESFP/idle_1_right.png",
+      "sha256": "00812d72da07c3faec575c76cf58c2e0752dbbd0488d37cf6264c4e705687a5b",
+      "bytes": 12079
+    },
+    {
+      "path": "assets/pets/m_ESFP/play_0_right.png",
+      "sha256": "f6373cd2603fddf82dc8dec1d07d911787587fb86d33b2f217542c4cde8d63ea",
+      "bytes": 12173
+    },
+    {
+      "path": "assets/pets/m_ESFP/play_1_right.png",
+      "sha256": "ac203d57622ae827d3f4dbe461acf8acd74ac08c2b47a1eea084a09e3e806b8b",
+      "bytes": 12114
+    },
+    {
+      "path": "assets/pets/m_ESFP/sad_0_right.png",
+      "sha256": "1c65660648680f40203d03658dbb41dacd6f1da454bc260605a10ffa6a14d1e8",
+      "bytes": 12124
+    },
+    {
+      "path": "assets/pets/m_ESFP/sad_1_right.png",
+      "sha256": "1c65660648680f40203d03658dbb41dacd6f1da454bc260605a10ffa6a14d1e8",
+      "bytes": 12124
+    },
+    {
+      "path": "assets/pets/m_ESFP/sleep_0_right.png",
+      "sha256": "8faaeca393fa4d24ecd5a21f664cb1928ed26d2679674e615c095b389dec8d31",
+      "bytes": 10028
+    },
+    {
+      "path": "assets/pets/m_ESFP/sleep_1_right.png",
+      "sha256": "8faaeca393fa4d24ecd5a21f664cb1928ed26d2679674e615c095b389dec8d31",
+      "bytes": 10028
+    },
+    {
+      "path": "assets/pets/m_ESFP/walk_0_right.png",
+      "sha256": "00812d72da07c3faec575c76cf58c2e0752dbbd0488d37cf6264c4e705687a5b",
+      "bytes": 12079
+    },
+    {
+      "path": "assets/pets/m_ESFP/walk_1_right.png",
+      "sha256": "a03840e12c58bf0e174615278ff8444f705fe46ef543cdea658cc361b369d465",
+      "bytes": 12155
+    },
+    {
+      "path": "assets/pets/m_ESTJ/eat_0_right.png",
+      "sha256": "db88e24d1035dd4956c336053f95a237999df43b79472823062cfd3744dabf01",
+      "bytes": 13416
+    },
+    {
+      "path": "assets/pets/m_ESTJ/eat_1_right.png",
+      "sha256": "db88e24d1035dd4956c336053f95a237999df43b79472823062cfd3744dabf01",
+      "bytes": 13416
+    },
+    {
+      "path": "assets/pets/m_ESTJ/happy_0_right.png",
+      "sha256": "f8db2450ef0395023017fd0e98bd26f66a850dc953b34d1cdd345b8530a9d522",
+      "bytes": 13624
+    },
+    {
+      "path": "assets/pets/m_ESTJ/happy_1_right.png",
+      "sha256": "d5c5c75e906f626fc609a697189b8297efd22123ab6f4d493e8d1b755fa01ff1",
+      "bytes": 13634
+    },
+    {
+      "path": "assets/pets/m_ESTJ/idle_0_right.png",
+      "sha256": "606b071e8a2ab5580f00649985c25ef124fe019d688af291b88d9778476efeef",
+      "bytes": 13555
+    },
+    {
+      "path": "assets/pets/m_ESTJ/idle_1_right.png",
+      "sha256": "606b071e8a2ab5580f00649985c25ef124fe019d688af291b88d9778476efeef",
+      "bytes": 13555
+    },
+    {
+      "path": "assets/pets/m_ESTJ/play_0_right.png",
+      "sha256": "2effe8570200cf037ffbf79b667b3676b9d06fdc740a46253c66918dadd4446d",
+      "bytes": 13729
+    },
+    {
+      "path": "assets/pets/m_ESTJ/play_1_right.png",
+      "sha256": "1761c562f8c1746fcb52dc706fd57a95dedd3093fd9164d745d5a301343b6f0a",
+      "bytes": 13731
+    },
+    {
+      "path": "assets/pets/m_ESTJ/sad_0_right.png",
+      "sha256": "a141b4eb15027d3959795711e4c2082dc0c053c266935abc1e0e793afab06db2",
+      "bytes": 13597
+    },
+    {
+      "path": "assets/pets/m_ESTJ/sad_1_right.png",
+      "sha256": "a141b4eb15027d3959795711e4c2082dc0c053c266935abc1e0e793afab06db2",
+      "bytes": 13597
+    },
+    {
+      "path": "assets/pets/m_ESTJ/sleep_0_right.png",
+      "sha256": "e8efd9b8cb2cb26ff603ec9570d1ddb775d0466be33f4cc99c185380c62ff265",
+      "bytes": 10422
+    },
+    {
+      "path": "assets/pets/m_ESTJ/sleep_1_right.png",
+      "sha256": "e8efd9b8cb2cb26ff603ec9570d1ddb775d0466be33f4cc99c185380c62ff265",
+      "bytes": 10422
+    },
+    {
+      "path": "assets/pets/m_ESTJ/walk_0_right.png",
+      "sha256": "606b071e8a2ab5580f00649985c25ef124fe019d688af291b88d9778476efeef",
+      "bytes": 13555
+    },
+    {
+      "path": "assets/pets/m_ESTJ/walk_1_right.png",
+      "sha256": "04288d5044b26bacda41876395b27d684501a3984aa70a8a62f33d7de237187e",
+      "bytes": 13338
+    },
+    {
+      "path": "assets/pets/m_ESTP/eat_0_right.png",
+      "sha256": "5fc70089ba435cd6f943bc9ca6df13a1b1a4b874f37ab1a120918b20aa78cb35",
+      "bytes": 14270
+    },
+    {
+      "path": "assets/pets/m_ESTP/eat_1_right.png",
+      "sha256": "5fc70089ba435cd6f943bc9ca6df13a1b1a4b874f37ab1a120918b20aa78cb35",
+      "bytes": 14270
+    },
+    {
+      "path": "assets/pets/m_ESTP/happy_0_right.png",
+      "sha256": "e55bc856867ee717d6e81ee80f69d06a68d8bd3315969771ce748da0beb54998",
+      "bytes": 14521
+    },
+    {
+      "path": "assets/pets/m_ESTP/happy_1_right.png",
+      "sha256": "cfcf459fbcf8da2f516e708fd77e0e6ba8151eef4de32e6654e929df30f17f14",
+      "bytes": 14530
+    },
+    {
+      "path": "assets/pets/m_ESTP/idle_0_right.png",
+      "sha256": "4dfa5cd6526051bf6053fe483f0c93e2a1735b0cb74fedb128c0a91342d86985",
+      "bytes": 14448
+    },
+    {
+      "path": "assets/pets/m_ESTP/idle_1_right.png",
+      "sha256": "4dfa5cd6526051bf6053fe483f0c93e2a1735b0cb74fedb128c0a91342d86985",
+      "bytes": 14448
+    },
+    {
+      "path": "assets/pets/m_ESTP/play_0_right.png",
+      "sha256": "4273f19444be994310bda4e87cd53fd0978cbcc94c3ad3e3070790eeec06bb3e",
+      "bytes": 14087
+    },
+    {
+      "path": "assets/pets/m_ESTP/play_1_right.png",
+      "sha256": "d5b4d482302bf84840548138563a13c8279e6c2eda5104cf57723a12cd165935",
+      "bytes": 14182
+    },
+    {
+      "path": "assets/pets/m_ESTP/sad_0_right.png",
+      "sha256": "e2fed426b8120cf54a863b4eaeadecf5cd0291082707f45ace263d8c9d170cf3",
+      "bytes": 14494
+    },
+    {
+      "path": "assets/pets/m_ESTP/sad_1_right.png",
+      "sha256": "e2fed426b8120cf54a863b4eaeadecf5cd0291082707f45ace263d8c9d170cf3",
+      "bytes": 14494
+    },
+    {
+      "path": "assets/pets/m_ESTP/sleep_0_right.png",
+      "sha256": "8f049ca606932d6f4dd5a9c5be4edd4d48c1441679d7033c9833649642ba0f22",
+      "bytes": 10979
+    },
+    {
+      "path": "assets/pets/m_ESTP/sleep_1_right.png",
+      "sha256": "8f049ca606932d6f4dd5a9c5be4edd4d48c1441679d7033c9833649642ba0f22",
+      "bytes": 10979
+    },
+    {
+      "path": "assets/pets/m_ESTP/walk_0_right.png",
+      "sha256": "4dfa5cd6526051bf6053fe483f0c93e2a1735b0cb74fedb128c0a91342d86985",
+      "bytes": 14448
+    },
+    {
+      "path": "assets/pets/m_ESTP/walk_1_right.png",
+      "sha256": "e523dc87d4a0f27d047dc9bbe057274915f34a9c448f518033b3c8753a4b16f2",
+      "bytes": 14560
+    },
+    {
+      "path": "assets/pets/m_INFJ/eat_0_right.png",
+      "sha256": "3f8a9fac15cce3afd66d324f6c498074e71922e7ad25121d5e3eff154c608e1d",
+      "bytes": 11413
+    },
+    {
+      "path": "assets/pets/m_INFJ/eat_1_right.png",
+      "sha256": "3f8a9fac15cce3afd66d324f6c498074e71922e7ad25121d5e3eff154c608e1d",
+      "bytes": 11413
+    },
+    {
+      "path": "assets/pets/m_INFJ/happy_0_right.png",
+      "sha256": "47a3a01da96aef470595d2964e8fa272120c89eda9fbb8c848c6cf55acb70712",
+      "bytes": 11583
+    },
+    {
+      "path": "assets/pets/m_INFJ/happy_1_right.png",
+      "sha256": "be8cc2f9d5edfd0ab3ced49e5fec6284435ef0a2b5176e063af792bfc46ed70e",
+      "bytes": 11592
+    },
+    {
+      "path": "assets/pets/m_INFJ/idle_0_right.png",
+      "sha256": "422e97cc1af50a03bec23f85adec192d06a6a2d96c62c9f050112ba75419d86d",
+      "bytes": 11515
+    },
+    {
+      "path": "assets/pets/m_INFJ/idle_1_right.png",
+      "sha256": "422e97cc1af50a03bec23f85adec192d06a6a2d96c62c9f050112ba75419d86d",
+      "bytes": 11515
+    },
+    {
+      "path": "assets/pets/m_INFJ/play_0_right.png",
+      "sha256": "106ce39cfb676d3eff4d04fe88767b2c0661d3bc45ce289857eb0eb010db536c",
+      "bytes": 11617
+    },
+    {
+      "path": "assets/pets/m_INFJ/play_1_right.png",
+      "sha256": "a648041f7e0b37003bb0acf9f528b768f8b2ef4084f05a62181ccc02c13ad2e6",
+      "bytes": 11460
+    },
+    {
+      "path": "assets/pets/m_INFJ/sad_0_right.png",
+      "sha256": "1991d160842c175751430e3eff6ac8c3e92da21679cc7910ed9116e5e52b35d1",
+      "bytes": 11556
+    },
+    {
+      "path": "assets/pets/m_INFJ/sad_1_right.png",
+      "sha256": "1991d160842c175751430e3eff6ac8c3e92da21679cc7910ed9116e5e52b35d1",
+      "bytes": 11556
+    },
+    {
+      "path": "assets/pets/m_INFJ/sleep_0_right.png",
+      "sha256": "77f410fb08d447ce05a227176a245c99ea8c70197f9ae7554fd39ccc44a932f5",
+      "bytes": 9710
+    },
+    {
+      "path": "assets/pets/m_INFJ/sleep_1_right.png",
+      "sha256": "77f410fb08d447ce05a227176a245c99ea8c70197f9ae7554fd39ccc44a932f5",
+      "bytes": 9710
+    },
+    {
+      "path": "assets/pets/m_INFJ/walk_0_right.png",
+      "sha256": "422e97cc1af50a03bec23f85adec192d06a6a2d96c62c9f050112ba75419d86d",
+      "bytes": 11515
+    },
+    {
+      "path": "assets/pets/m_INFJ/walk_1_right.png",
+      "sha256": "00e634c11339248464ba333ebd7f20c65ff69cbd328592556fc10ff8fb854bc2",
+      "bytes": 11484
+    },
+    {
+      "path": "assets/pets/m_INFP/eat_0_right.png",
+      "sha256": "5c9d4962f8ee506d24d2a73cb3ef2e6cbc409d7698cf54235a99c848fc8bbc2d",
+      "bytes": 10015
+    },
+    {
+      "path": "assets/pets/m_INFP/eat_1_right.png",
+      "sha256": "5c9d4962f8ee506d24d2a73cb3ef2e6cbc409d7698cf54235a99c848fc8bbc2d",
+      "bytes": 10015
+    },
+    {
+      "path": "assets/pets/m_INFP/happy_0_right.png",
+      "sha256": "b8dd714a412e751b2f9b85a2b6ec736c00691be5510609670c2eed281a4912d8",
+      "bytes": 10131
+    },
+    {
+      "path": "assets/pets/m_INFP/happy_1_right.png",
+      "sha256": "85413cd18655f360be76aa5b82b1f4b57a1aecace34ec08929d2f90c043f3b18",
+      "bytes": 10133
+    },
+    {
+      "path": "assets/pets/m_INFP/idle_0_right.png",
+      "sha256": "c333c9309e1112e2fda352f4c64886c5a0e57b381bfc27e843cd4bb15e2b1be2",
+      "bytes": 10093
+    },
+    {
+      "path": "assets/pets/m_INFP/idle_1_right.png",
+      "sha256": "c333c9309e1112e2fda352f4c64886c5a0e57b381bfc27e843cd4bb15e2b1be2",
+      "bytes": 10093
+    },
+    {
+      "path": "assets/pets/m_INFP/play_0_right.png",
+      "sha256": "eabfd1b673e4fccbb54dd978e2e37e842e2b825ab13edd09273b8452c2412ea8",
+      "bytes": 9869
+    },
+    {
+      "path": "assets/pets/m_INFP/play_1_right.png",
+      "sha256": "c76a7690cb86c168e84bf9b267510cbdc1a89e26a32cfa99b7d0cae0ea700fe4",
+      "bytes": 9879
+    },
+    {
+      "path": "assets/pets/m_INFP/sad_0_right.png",
+      "sha256": "096e96ccc4fad38758e6d487760ce9ac823f119023ba973d78ed74f53680eb47",
+      "bytes": 10138
+    },
+    {
+      "path": "assets/pets/m_INFP/sad_1_right.png",
+      "sha256": "096e96ccc4fad38758e6d487760ce9ac823f119023ba973d78ed74f53680eb47",
+      "bytes": 10138
+    },
+    {
+      "path": "assets/pets/m_INFP/sleep_0_right.png",
+      "sha256": "7278da7584a05a0cc409e862203b86135c02a4f147b7ed3d1ff25b696b5ef028",
+      "bytes": 9038
+    },
+    {
+      "path": "assets/pets/m_INFP/sleep_1_right.png",
+      "sha256": "7278da7584a05a0cc409e862203b86135c02a4f147b7ed3d1ff25b696b5ef028",
+      "bytes": 9038
+    },
+    {
+      "path": "assets/pets/m_INFP/walk_0_right.png",
+      "sha256": "c333c9309e1112e2fda352f4c64886c5a0e57b381bfc27e843cd4bb15e2b1be2",
+      "bytes": 10093
+    },
+    {
+      "path": "assets/pets/m_INFP/walk_1_right.png",
+      "sha256": "3e6b3ab46f74a2c9fcd8b824eb5bcd7b0a8806df7c0d5528120d1fe06db3370c",
+      "bytes": 10116
+    },
+    {
+      "path": "assets/pets/m_INTJ/eat_0_right.png",
+      "sha256": "db1781f233b4c5bb102309ecf1792274699f833064d7be1c710bfc5807c85e14",
+      "bytes": 12634
+    },
+    {
+      "path": "assets/pets/m_INTJ/eat_1_right.png",
+      "sha256": "db1781f233b4c5bb102309ecf1792274699f833064d7be1c710bfc5807c85e14",
+      "bytes": 12634
+    },
+    {
+      "path": "assets/pets/m_INTJ/happy_0_right.png",
+      "sha256": "5599755d4528e4c9df716237067291d56caff074aaeffbd4683b7eb58b1eebbe",
+      "bytes": 12896
+    },
+    {
+      "path": "assets/pets/m_INTJ/happy_1_right.png",
+      "sha256": "fc2c7eb7ebcc404fcc111a5b1c1355f3809057616a700993e1677473036fd0e6",
+      "bytes": 12905
+    },
+    {
+      "path": "assets/pets/m_INTJ/idle_0_right.png",
+      "sha256": "2155a1fe6882aaa36650f6c4abaf577719ba4a5cb4f8aca157f63db72ed47116",
+      "bytes": 12824
+    },
+    {
+      "path": "assets/pets/m_INTJ/idle_1_right.png",
+      "sha256": "2155a1fe6882aaa36650f6c4abaf577719ba4a5cb4f8aca157f63db72ed47116",
+      "bytes": 12824
+    },
+    {
+      "path": "assets/pets/m_INTJ/play_0_right.png",
+      "sha256": "5e9bbfcc9c24dcdd00c6f7fcfef81e678ca99cbd684d323385707651c6f41a0a",
+      "bytes": 12870
+    },
+    {
+      "path": "assets/pets/m_INTJ/play_1_right.png",
+      "sha256": "45d5605d2dac57137b6a2ece7c3ca8e638cf75ace40f7c32135350cd09543344",
+      "bytes": 12758
+    },
+    {
+      "path": "assets/pets/m_INTJ/sad_0_right.png",
+      "sha256": "bd41a52863e4bdb38da0fa0a3543279eefef6c1650b98987b7346590f6a21a44",
+      "bytes": 12868
+    },
+    {
+      "path": "assets/pets/m_INTJ/sad_1_right.png",
+      "sha256": "bd41a52863e4bdb38da0fa0a3543279eefef6c1650b98987b7346590f6a21a44",
+      "bytes": 12868
+    },
+    {
+      "path": "assets/pets/m_INTJ/sleep_0_right.png",
+      "sha256": "fc7d5aac542b6a0eb777726314f09df01524a5f23f7d7da1897abf324eeb043c",
+      "bytes": 10713
+    },
+    {
+      "path": "assets/pets/m_INTJ/sleep_1_right.png",
+      "sha256": "fc7d5aac542b6a0eb777726314f09df01524a5f23f7d7da1897abf324eeb043c",
+      "bytes": 10713
+    },
+    {
+      "path": "assets/pets/m_INTJ/walk_0_right.png",
+      "sha256": "2155a1fe6882aaa36650f6c4abaf577719ba4a5cb4f8aca157f63db72ed47116",
+      "bytes": 12824
+    },
+    {
+      "path": "assets/pets/m_INTJ/walk_1_right.png",
+      "sha256": "9628ae5b31b37df0c20db9a9dc8396a1681a5980a3ecb5784d330f493ad3c1fc",
+      "bytes": 12672
+    },
+    {
+      "path": "assets/pets/m_INTP/eat_0_right.png",
+      "sha256": "e6b3e8238ad522705731ca346776526771cc373e3d5ba6b495e6537fcbf63292",
+      "bytes": 9412
+    },
+    {
+      "path": "assets/pets/m_INTP/eat_1_right.png",
+      "sha256": "e6b3e8238ad522705731ca346776526771cc373e3d5ba6b495e6537fcbf63292",
+      "bytes": 9412
+    },
+    {
+      "path": "assets/pets/m_INTP/happy_0_right.png",
+      "sha256": "015ea0eb445aad1b9923ec0ee356db7a79c262cb0fb1cbd3d1dda8851de7b109",
+      "bytes": 9531
+    },
+    {
+      "path": "assets/pets/m_INTP/happy_1_right.png",
+      "sha256": "d09a6fa6008d54c09248419a1835ca3cd6c5c2ab42894a76147d57cd1ba9f3ed",
+      "bytes": 9541
+    },
+    {
+      "path": "assets/pets/m_INTP/idle_0_right.png",
+      "sha256": "9ce42eaf1f163807b72c9b55e56c0a7d14dd0feef3b8501540b0fe794d819d90",
+      "bytes": 9461
+    },
+    {
+      "path": "assets/pets/m_INTP/idle_1_right.png",
+      "sha256": "9ce42eaf1f163807b72c9b55e56c0a7d14dd0feef3b8501540b0fe794d819d90",
+      "bytes": 9461
+    },
+    {
+      "path": "assets/pets/m_INTP/play_0_right.png",
+      "sha256": "732f970246398c6a1fcc87992606366469c4747ddf46d095183836679148bc47",
+      "bytes": 9614
+    },
+    {
+      "path": "assets/pets/m_INTP/play_1_right.png",
+      "sha256": "9eb9f2f3616cb5407c0cb87f3f726815979ba7f03c5a118f1fe07978bfcd0cce",
+      "bytes": 9628
+    },
+    {
+      "path": "assets/pets/m_INTP/sad_0_right.png",
+      "sha256": "6b6dcff5861ac53fa3a6059de9d2e65791fab5306dc3917f1582e63fd299ddee",
+      "bytes": 9505
+    },
+    {
+      "path": "assets/pets/m_INTP/sad_1_right.png",
+      "sha256": "6b6dcff5861ac53fa3a6059de9d2e65791fab5306dc3917f1582e63fd299ddee",
+      "bytes": 9505
+    },
+    {
+      "path": "assets/pets/m_INTP/sleep_0_right.png",
+      "sha256": "a099c6400b6278aea02454c60b29ad13d1ce3cff14360d3c374cb0e3320e5896",
+      "bytes": 8267
+    },
+    {
+      "path": "assets/pets/m_INTP/sleep_1_right.png",
+      "sha256": "a099c6400b6278aea02454c60b29ad13d1ce3cff14360d3c374cb0e3320e5896",
+      "bytes": 8267
+    },
+    {
+      "path": "assets/pets/m_INTP/walk_0_right.png",
+      "sha256": "9ce42eaf1f163807b72c9b55e56c0a7d14dd0feef3b8501540b0fe794d819d90",
+      "bytes": 9461
+    },
+    {
+      "path": "assets/pets/m_INTP/walk_1_right.png",
+      "sha256": "0163fe954681772e094cd6ec64f1377236f71da0cf41e314e4ff9d98129492b8",
+      "bytes": 9396
+    },
+    {
+      "path": "assets/pets/m_ISFJ/eat_0_right.png",
+      "sha256": "bab71d83bb667b28c767c0913fab9daca8f324a7c99979a5f017f493bfeb6773",
+      "bytes": 11898
+    },
+    {
+      "path": "assets/pets/m_ISFJ/eat_1_right.png",
+      "sha256": "bab71d83bb667b28c767c0913fab9daca8f324a7c99979a5f017f493bfeb6773",
+      "bytes": 11898
+    },
+    {
+      "path": "assets/pets/m_ISFJ/happy_0_right.png",
+      "sha256": "a770fdfacfe930641d3159a7829bb93eba0e180d657019e2e6e33d048558d79e",
+      "bytes": 12170
+    },
+    {
+      "path": "assets/pets/m_ISFJ/happy_1_right.png",
+      "sha256": "83f6c4472a4386284628a04deb125e8efb0c6dcf2899ea79f39d9e8f895f3bc2",
+      "bytes": 12181
+    },
+    {
+      "path": "assets/pets/m_ISFJ/idle_0_right.png",
+      "sha256": "b1dbc871c5d0bb6dd83645ba575516dbf2094e969b3bcd3ba3290cee6314484f",
+      "bytes": 12103
+    },
+    {
+      "path": "assets/pets/m_ISFJ/idle_1_right.png",
+      "sha256": "b1dbc871c5d0bb6dd83645ba575516dbf2094e969b3bcd3ba3290cee6314484f",
+      "bytes": 12103
+    },
+    {
+      "path": "assets/pets/m_ISFJ/play_0_right.png",
+      "sha256": "0ed65a85d12ab1f3e165687113fe4b20d326d08a9a43591e8c25a898c3064776",
+      "bytes": 12194
+    },
+    {
+      "path": "assets/pets/m_ISFJ/play_1_right.png",
+      "sha256": "8b39b1dea637da7586f2fa9d56f1a5a0219d6ed2a46db8ec82ab6d431116fc2d",
+      "bytes": 12054
+    },
+    {
+      "path": "assets/pets/m_ISFJ/sad_0_right.png",
+      "sha256": "6f690167ef96e6eead4951aabb455cf57ca176f48feb12006856d9d753115285",
+      "bytes": 12145
+    },
+    {
+      "path": "assets/pets/m_ISFJ/sad_1_right.png",
+      "sha256": "6f690167ef96e6eead4951aabb455cf57ca176f48feb12006856d9d753115285",
+      "bytes": 12145
+    },
+    {
+      "path": "assets/pets/m_ISFJ/sleep_0_right.png",
+      "sha256": "a8a9d1a1f783d50e00eb88e1e5c5305f7356041b069566711d0809c1af0209fa",
+      "bytes": 11257
+    },
+    {
+      "path": "assets/pets/m_ISFJ/sleep_1_right.png",
+      "sha256": "a8a9d1a1f783d50e00eb88e1e5c5305f7356041b069566711d0809c1af0209fa",
+      "bytes": 11257
+    },
+    {
+      "path": "assets/pets/m_ISFJ/walk_0_right.png",
+      "sha256": "b1dbc871c5d0bb6dd83645ba575516dbf2094e969b3bcd3ba3290cee6314484f",
+      "bytes": 12103
+    },
+    {
+      "path": "assets/pets/m_ISFJ/walk_1_right.png",
+      "sha256": "965fbf45ce55237ebf226b220f9d1fcdf493b4eac27b5b0b3625f37f05f16f2b",
+      "bytes": 12173
+    },
+    {
+      "path": "assets/pets/m_ISFP/eat_0_right.png",
+      "sha256": "40753f3ef154198bd396f87a94e97fe1c33bb66ba4993448cef8da9d12066055",
+      "bytes": 12387
+    },
+    {
+      "path": "assets/pets/m_ISFP/eat_1_right.png",
+      "sha256": "40753f3ef154198bd396f87a94e97fe1c33bb66ba4993448cef8da9d12066055",
+      "bytes": 12387
+    },
+    {
+      "path": "assets/pets/m_ISFP/happy_0_right.png",
+      "sha256": "93afbfe49cc6c7625e8473f6a942b88a4fe38ac796ce13fd6b4644dbe1bef3fd",
+      "bytes": 12567
+    },
+    {
+      "path": "assets/pets/m_ISFP/happy_1_right.png",
+      "sha256": "c6c070acb38b0608831bda0b6aa702d42a88f058ec99bd77d9c6acc23a604b16",
+      "bytes": 12562
+    },
+    {
+      "path": "assets/pets/m_ISFP/idle_0_right.png",
+      "sha256": "477abb7c27d7c0b571d8deeb2b5b71614d0d79769922aba506700ef020761b79",
+      "bytes": 12508
+    },
+    {
+      "path": "assets/pets/m_ISFP/idle_1_right.png",
+      "sha256": "477abb7c27d7c0b571d8deeb2b5b71614d0d79769922aba506700ef020761b79",
+      "bytes": 12508
+    },
+    {
+      "path": "assets/pets/m_ISFP/play_0_right.png",
+      "sha256": "071487f7e8bdf88301272af7b1f5c9d5e290a74fb76de9ed3c5e4582509de31a",
+      "bytes": 12538
+    },
+    {
+      "path": "assets/pets/m_ISFP/play_1_right.png",
+      "sha256": "88067867aa82949fca77f9ba39b4ed3805df54b08364c0c882cfe8ac6acb833b",
+      "bytes": 12472
+    },
+    {
+      "path": "assets/pets/m_ISFP/sad_0_right.png",
+      "sha256": "b68454973a4187f622d1680472727d68aa805026d5b6a8b2cf198edc80abc87c",
+      "bytes": 12560
+    },
+    {
+      "path": "assets/pets/m_ISFP/sad_1_right.png",
+      "sha256": "b68454973a4187f622d1680472727d68aa805026d5b6a8b2cf198edc80abc87c",
+      "bytes": 12560
+    },
+    {
+      "path": "assets/pets/m_ISFP/sleep_0_right.png",
+      "sha256": "4f77f8eedd67d00b412b6e49ba5ecce355893d74bf27016e0de5e6fe0fc14289",
+      "bytes": 11778
+    },
+    {
+      "path": "assets/pets/m_ISFP/sleep_1_right.png",
+      "sha256": "4f77f8eedd67d00b412b6e49ba5ecce355893d74bf27016e0de5e6fe0fc14289",
+      "bytes": 11778
+    },
+    {
+      "path": "assets/pets/m_ISFP/walk_0_right.png",
+      "sha256": "477abb7c27d7c0b571d8deeb2b5b71614d0d79769922aba506700ef020761b79",
+      "bytes": 12508
+    },
+    {
+      "path": "assets/pets/m_ISFP/walk_1_right.png",
+      "sha256": "6006260046c90f0941c776032021cc84a0a00972a4e2a1412999fa73d254d7d9",
+      "bytes": 12590
+    },
+    {
+      "path": "assets/pets/m_ISTJ/eat_0_right.png",
+      "sha256": "41d746a304c837a42b7d8208f60c61ee446196d290253f79d65560aae23c0e7f",
+      "bytes": 14006
+    },
+    {
+      "path": "assets/pets/m_ISTJ/eat_1_right.png",
+      "sha256": "41d746a304c837a42b7d8208f60c61ee446196d290253f79d65560aae23c0e7f",
+      "bytes": 14006
+    },
+    {
+      "path": "assets/pets/m_ISTJ/happy_0_right.png",
+      "sha256": "380c0b81618beaaa6a16df6223c2f44ba516cf5a342924541b618a0efd66ab3d",
+      "bytes": 14147
+    },
+    {
+      "path": "assets/pets/m_ISTJ/happy_1_right.png",
+      "sha256": "e85deabafd4626206c0f5de20cc77a31936a4d657a5802e6fff9522799aef661",
+      "bytes": 14152
+    },
+    {
+      "path": "assets/pets/m_ISTJ/idle_0_right.png",
+      "sha256": "12cc0c4b78bdb36ed3cef2c2badb7521f889d892c2ec59d8fe5a7140babca232",
+      "bytes": 14088
+    },
+    {
+      "path": "assets/pets/m_ISTJ/idle_1_right.png",
+      "sha256": "12cc0c4b78bdb36ed3cef2c2badb7521f889d892c2ec59d8fe5a7140babca232",
+      "bytes": 14088
+    },
+    {
+      "path": "assets/pets/m_ISTJ/play_0_right.png",
+      "sha256": "b950ae7fae83356b912e9909a7d51bdb682aecd35ad1d6974b1f6eec8e61bb78",
+      "bytes": 13844
+    },
+    {
+      "path": "assets/pets/m_ISTJ/play_1_right.png",
+      "sha256": "180aedc4e9853d53f0519849c77e0169b30d010dd630cc8891409591d77a4bb2",
+      "bytes": 13876
+    },
+    {
+      "path": "assets/pets/m_ISTJ/sad_0_right.png",
+      "sha256": "00eb09b2f399b28a4d4f2514d0ad078d32729320987e13d396aeb5205bce9c20",
+      "bytes": 14127
+    },
+    {
+      "path": "assets/pets/m_ISTJ/sad_1_right.png",
+      "sha256": "00eb09b2f399b28a4d4f2514d0ad078d32729320987e13d396aeb5205bce9c20",
+      "bytes": 14127
+    },
+    {
+      "path": "assets/pets/m_ISTJ/sleep_0_right.png",
+      "sha256": "c0c08d0718ffdec87883a547e58651d6f2cef6391548c4549192d074b4d095d5",
+      "bytes": 12275
+    },
+    {
+      "path": "assets/pets/m_ISTJ/sleep_1_right.png",
+      "sha256": "c0c08d0718ffdec87883a547e58651d6f2cef6391548c4549192d074b4d095d5",
+      "bytes": 12275
+    },
+    {
+      "path": "assets/pets/m_ISTJ/walk_0_right.png",
+      "sha256": "12cc0c4b78bdb36ed3cef2c2badb7521f889d892c2ec59d8fe5a7140babca232",
+      "bytes": 14088
+    },
+    {
+      "path": "assets/pets/m_ISTJ/walk_1_right.png",
+      "sha256": "599f0ae2c49dc26cc8a24639e0569021b8f68c39e5ee54b40c458f97a30dcfe0",
+      "bytes": 14070
+    },
+    {
+      "path": "assets/pets/m_ISTP/eat_0_right.png",
+      "sha256": "9dcff1d881d75510158ca7da8e4e6372f122281f6c775d6d97cdc2f42e715df9",
+      "bytes": 11575
+    },
+    {
+      "path": "assets/pets/m_ISTP/eat_1_right.png",
+      "sha256": "9dcff1d881d75510158ca7da8e4e6372f122281f6c775d6d97cdc2f42e715df9",
+      "bytes": 11575
+    },
+    {
+      "path": "assets/pets/m_ISTP/happy_0_right.png",
+      "sha256": "4b17ec583bd8a8e3a2402b5413e2475923e6220a18701a4d4bd4f3ba51f60cdc",
+      "bytes": 11868
+    },
+    {
+      "path": "assets/pets/m_ISTP/happy_1_right.png",
+      "sha256": "ef69700b922f1ca668d975f4208ef3820fd5244d175412161a1279d340e6a544",
+      "bytes": 11877
+    },
+    {
+      "path": "assets/pets/m_ISTP/idle_0_right.png",
+      "sha256": "085a7bdb7601c9026bb2df5923b6c2a7df262d16e52874dd5cab83a07fa00ba1",
+      "bytes": 11798
+    },
+    {
+      "path": "assets/pets/m_ISTP/idle_1_right.png",
+      "sha256": "085a7bdb7601c9026bb2df5923b6c2a7df262d16e52874dd5cab83a07fa00ba1",
+      "bytes": 11798
+    },
+    {
+      "path": "assets/pets/m_ISTP/play_0_right.png",
+      "sha256": "59242b46d86f1bf8c668a72b9fa7629534b81c984cc50c9afa15aa72efe3752b",
+      "bytes": 11832
+    },
+    {
+      "path": "assets/pets/m_ISTP/play_1_right.png",
+      "sha256": "db13a2d587f50d34913a0d4c444bdf2d3c8ee91805542b9b6f6ff7ae6a3b8fc4",
+      "bytes": 11711
+    },
+    {
+      "path": "assets/pets/m_ISTP/sad_0_right.png",
+      "sha256": "394ccde4f3daaf3e986e1e5e05c882e57bb2311398ab9e1523b7169286c27826",
+      "bytes": 11841
+    },
+    {
+      "path": "assets/pets/m_ISTP/sad_1_right.png",
+      "sha256": "394ccde4f3daaf3e986e1e5e05c882e57bb2311398ab9e1523b7169286c27826",
+      "bytes": 11841
+    },
+    {
+      "path": "assets/pets/m_ISTP/sleep_0_right.png",
+      "sha256": "286c2a7218c9fe669a82d7cdceac7d1e2c09eefff95195104ec84b8fe1802fe1",
+      "bytes": 11881
+    },
+    {
+      "path": "assets/pets/m_ISTP/sleep_1_right.png",
+      "sha256": "286c2a7218c9fe669a82d7cdceac7d1e2c09eefff95195104ec84b8fe1802fe1",
+      "bytes": 11881
+    },
+    {
+      "path": "assets/pets/m_ISTP/walk_0_right.png",
+      "sha256": "085a7bdb7601c9026bb2df5923b6c2a7df262d16e52874dd5cab83a07fa00ba1",
+      "bytes": 11798
+    },
+    {
+      "path": "assets/pets/m_ISTP/walk_1_right.png",
+      "sha256": "09230da875b9b09ddf96c49100ab33d060f788d641ad35ff9bd3d3a939a1b242",
+      "bytes": 11695
+    },
+    {
+      "path": "assets/pets/z_dog/eat_0_right.png",
+      "sha256": "21d99bd3605062e670aa7d0f4fc040c8be0dbe5226bd68c1ea1c694e7b7300b9",
+      "bytes": 12832
+    },
+    {
+      "path": "assets/pets/z_dog/eat_1_right.png",
+      "sha256": "21d99bd3605062e670aa7d0f4fc040c8be0dbe5226bd68c1ea1c694e7b7300b9",
+      "bytes": 12832
+    },
+    {
+      "path": "assets/pets/z_dog/happy_0_right.png",
+      "sha256": "61108383a07166e1c2e9758cc3b1e57c7b5b716e8a8c490b8327e5610a4a94c6",
+      "bytes": 13123
+    },
+    {
+      "path": "assets/pets/z_dog/happy_1_right.png",
+      "sha256": "dec023de706e4a0c6c5391662a03c98f3ea526304fc10418afa0cf90717b4f09",
+      "bytes": 13134
+    },
+    {
+      "path": "assets/pets/z_dog/idle_0_right.png",
+      "sha256": "d391a29930ac129d4586a39bd72a42ee11f859c19ebbd42e95c4ba42a241e332",
+      "bytes": 13056
+    },
+    {
+      "path": "assets/pets/z_dog/idle_1_right.png",
+      "sha256": "d391a29930ac129d4586a39bd72a42ee11f859c19ebbd42e95c4ba42a241e332",
+      "bytes": 13056
+    },
+    {
+      "path": "assets/pets/z_dog/play_0_right.png",
+      "sha256": "76b76fe1eaba6e8b6fcefb156fb6ce4553550dfde770e9442d12f16f8b325575",
+      "bytes": 13223
+    },
+    {
+      "path": "assets/pets/z_dog/play_1_right.png",
+      "sha256": "f43e3254649aed6b573513d87ff6fa99c4f3b0a38e869fa8b65f9b1521dc8fc7",
+      "bytes": 13080
+    },
+    {
+      "path": "assets/pets/z_dog/sad_0_right.png",
+      "sha256": "8ace5f3438d572b211db38427135a1461e78022c697fbab9ecdb27c9f8998d4d",
+      "bytes": 13095
+    },
+    {
+      "path": "assets/pets/z_dog/sad_1_right.png",
+      "sha256": "8ace5f3438d572b211db38427135a1461e78022c697fbab9ecdb27c9f8998d4d",
+      "bytes": 13095
+    },
+    {
+      "path": "assets/pets/z_dog/sleep_0_right.png",
+      "sha256": "c541fe23d92e6b03f0d080cc3387a29b6f5a0ce371a506d9bbce22dd1634c069",
+      "bytes": 10354
+    },
+    {
+      "path": "assets/pets/z_dog/sleep_1_right.png",
+      "sha256": "c541fe23d92e6b03f0d080cc3387a29b6f5a0ce371a506d9bbce22dd1634c069",
+      "bytes": 10354
+    },
+    {
+      "path": "assets/pets/z_dog/walk_0_right.png",
+      "sha256": "d391a29930ac129d4586a39bd72a42ee11f859c19ebbd42e95c4ba42a241e332",
+      "bytes": 13056
+    },
+    {
+      "path": "assets/pets/z_dog/walk_1_right.png",
+      "sha256": "2a08e9bd8329028be9e84fb53684dd17af0eee61210070c8ff72cc69ede99169",
+      "bytes": 12861
+    },
+    {
+      "path": "assets/pets/z_dragon/eat_0_right.png",
+      "sha256": "b9329dde2c507303aff28f63898cc48cf2a5190cf6954c6713b8af5da96ffc8f",
+      "bytes": 12290
+    },
+    {
+      "path": "assets/pets/z_dragon/eat_1_right.png",
+      "sha256": "b9329dde2c507303aff28f63898cc48cf2a5190cf6954c6713b8af5da96ffc8f",
+      "bytes": 12290
+    },
+    {
+      "path": "assets/pets/z_dragon/happy_0_right.png",
+      "sha256": "332d6aa23269c401dedf7875f8f32cd072e656ce19799c774b64bdce6c47f763",
+      "bytes": 12697
+    },
+    {
+      "path": "assets/pets/z_dragon/happy_1_right.png",
+      "sha256": "f7f4494d0ecea7d3d00edb8743ac02e610f17db23dd9c375d616a47e2e3b5579",
+      "bytes": 12709
+    },
+    {
+      "path": "assets/pets/z_dragon/idle_0_right.png",
+      "sha256": "23ca1414e3069c1cfca84ed3fb2bbc89c2ba007819908ab005a40fda0b5f5b27",
+      "bytes": 12624
+    },
+    {
+      "path": "assets/pets/z_dragon/idle_1_right.png",
+      "sha256": "23ca1414e3069c1cfca84ed3fb2bbc89c2ba007819908ab005a40fda0b5f5b27",
+      "bytes": 12624
+    },
+    {
+      "path": "assets/pets/z_dragon/play_0_right.png",
+      "sha256": "524a70919b000b3dc65bcaae58ca5e6523423de8f54c6b4d58219a4c5595c454",
+      "bytes": 12700
+    },
+    {
+      "path": "assets/pets/z_dragon/play_1_right.png",
+      "sha256": "31862689a0ee1d5c8331abb507611cba48e25d41d5f565aee465e07a1b8e0318",
+      "bytes": 12598
+    },
+    {
+      "path": "assets/pets/z_dragon/sad_0_right.png",
+      "sha256": "11b5b5b251e7249f184798941597e54a9f89a7c7b5acdea2e3bedd3a6acc34c0",
+      "bytes": 12670
+    },
+    {
+      "path": "assets/pets/z_dragon/sad_1_right.png",
+      "sha256": "11b5b5b251e7249f184798941597e54a9f89a7c7b5acdea2e3bedd3a6acc34c0",
+      "bytes": 12670
+    },
+    {
+      "path": "assets/pets/z_dragon/sleep_0_right.png",
+      "sha256": "72e8841b5b6c75abbb7f828f727a7cc46d825458aad9437d5b32c5aa27c09f15",
+      "bytes": 10152
+    },
+    {
+      "path": "assets/pets/z_dragon/sleep_1_right.png",
+      "sha256": "72e8841b5b6c75abbb7f828f727a7cc46d825458aad9437d5b32c5aa27c09f15",
+      "bytes": 10152
+    },
+    {
+      "path": "assets/pets/z_dragon/walk_0_right.png",
+      "sha256": "23ca1414e3069c1cfca84ed3fb2bbc89c2ba007819908ab005a40fda0b5f5b27",
+      "bytes": 12624
+    },
+    {
+      "path": "assets/pets/z_dragon/walk_1_right.png",
+      "sha256": "757ec4413c8aaa86193791caa925cabbcf4376a86cc7422be6bb9c634538e8a5",
+      "bytes": 12393
+    },
+    {
+      "path": "assets/pets/z_horse/eat_0_right.png",
+      "sha256": "82954629600c6ff4ed043e1f32a34814f57e990cbc2579826a8a583926e2e131",
+      "bytes": 13941
+    },
+    {
+      "path": "assets/pets/z_horse/eat_1_right.png",
+      "sha256": "82954629600c6ff4ed043e1f32a34814f57e990cbc2579826a8a583926e2e131",
+      "bytes": 13941
+    },
+    {
+      "path": "assets/pets/z_horse/happy_0_right.png",
+      "sha256": "40acfe8a70dc3f6fa73ebc12dc645b873bc8be3d9f9f2ea430141156cb087360",
+      "bytes": 14217
+    },
+    {
+      "path": "assets/pets/z_horse/happy_1_right.png",
+      "sha256": "8232b442ba8361766bce96404ecd187a959c8ebd0f96861a0917af5956a21d66",
+      "bytes": 14228
+    },
+    {
+      "path": "assets/pets/z_horse/idle_0_right.png",
+      "sha256": "416165e52a3af41a7011a1666bed8416ef28420429ff863296b3eeb938790714",
+      "bytes": 14148
+    },
+    {
+      "path": "assets/pets/z_horse/idle_1_right.png",
+      "sha256": "416165e52a3af41a7011a1666bed8416ef28420429ff863296b3eeb938790714",
+      "bytes": 14148
+    },
+    {
+      "path": "assets/pets/z_horse/play_0_right.png",
+      "sha256": "0f3960c31270131c4b80ebf3b2afc7dd5d26ce1754c68c55948f8de6270fb973",
+      "bytes": 14291
+    },
+    {
+      "path": "assets/pets/z_horse/play_1_right.png",
+      "sha256": "f31d83172b1639a1546541c9850c372235a4550222c5548e74c44d617c673ec9",
+      "bytes": 14098
+    },
+    {
+      "path": "assets/pets/z_horse/sad_0_right.png",
+      "sha256": "361e6ad70e819cd972c9fd97e5fdd5c3d478cf958c5c2e10a6f495bddb785dd3",
+      "bytes": 14192
+    },
+    {
+      "path": "assets/pets/z_horse/sad_1_right.png",
+      "sha256": "361e6ad70e819cd972c9fd97e5fdd5c3d478cf958c5c2e10a6f495bddb785dd3",
+      "bytes": 14192
+    },
+    {
+      "path": "assets/pets/z_horse/sleep_0_right.png",
+      "sha256": "3045bd8bfe061d92e3db3e8fbe28202b8013dba661d9b489826f572d17734aba",
+      "bytes": 11471
+    },
+    {
+      "path": "assets/pets/z_horse/sleep_1_right.png",
+      "sha256": "3045bd8bfe061d92e3db3e8fbe28202b8013dba661d9b489826f572d17734aba",
+      "bytes": 11471
+    },
+    {
+      "path": "assets/pets/z_horse/walk_0_right.png",
+      "sha256": "416165e52a3af41a7011a1666bed8416ef28420429ff863296b3eeb938790714",
+      "bytes": 14148
+    },
+    {
+      "path": "assets/pets/z_horse/walk_1_right.png",
+      "sha256": "9ab6ffc53c56911a762bffe3c280468fca7cc7450cee24271f22d42e9e22cf11",
+      "bytes": 13998
+    },
+    {
+      "path": "assets/pets/z_monkey/eat_0_right.png",
+      "sha256": "f4eef2bfc2423d29556e1df15e08ee76f2f4ca939ba106073855dc72c0dc2eb0",
+      "bytes": 13316
+    },
+    {
+      "path": "assets/pets/z_monkey/eat_1_right.png",
+      "sha256": "f4eef2bfc2423d29556e1df15e08ee76f2f4ca939ba106073855dc72c0dc2eb0",
+      "bytes": 13316
+    },
+    {
+      "path": "assets/pets/z_monkey/happy_0_right.png",
+      "sha256": "e30ca6b1c6e3118d674c8f5db4a421a6791c126aad16f0c86e1acee7cdc4c4dd",
+      "bytes": 13496
+    },
+    {
+      "path": "assets/pets/z_monkey/happy_1_right.png",
+      "sha256": "e3d1cd351600ab32f75e212b5440a09826ab1a9cb412c778990df47ea0ea9ffd",
+      "bytes": 13507
+    },
+    {
+      "path": "assets/pets/z_monkey/idle_0_right.png",
+      "sha256": "07405ca2a052ba02a3de90029610717fe4f8d71a7427860843986a8359bad39c",
+      "bytes": 13423
+    },
+    {
+      "path": "assets/pets/z_monkey/idle_1_right.png",
+      "sha256": "07405ca2a052ba02a3de90029610717fe4f8d71a7427860843986a8359bad39c",
+      "bytes": 13423
+    },
+    {
+      "path": "assets/pets/z_monkey/play_0_right.png",
+      "sha256": "bf337e5ff3e8d19c4f3a8e020071abd1fabbffd51772a7bbd645479ad52689a3",
+      "bytes": 13582
+    },
+    {
+      "path": "assets/pets/z_monkey/play_1_right.png",
+      "sha256": "2879f46a3c0d1ad850a1e14bf19e8351440a91dc0fabf30f0b0cddfde685f2c4",
+      "bytes": 13615
+    },
+    {
+      "path": "assets/pets/z_monkey/sad_0_right.png",
+      "sha256": "fddf4ce1147a0ccf5f2a2a8481798934e2e23c0080db653113cb21f464cce15c",
+      "bytes": 13468
+    },
+    {
+      "path": "assets/pets/z_monkey/sad_1_right.png",
+      "sha256": "fddf4ce1147a0ccf5f2a2a8481798934e2e23c0080db653113cb21f464cce15c",
+      "bytes": 13468
+    },
+    {
+      "path": "assets/pets/z_monkey/sleep_0_right.png",
+      "sha256": "fa6f03e508833a90b388deae57560d8d1c5804f69de3e6f073a6d3b3fe5a03b0",
+      "bytes": 11001
+    },
+    {
+      "path": "assets/pets/z_monkey/sleep_1_right.png",
+      "sha256": "fa6f03e508833a90b388deae57560d8d1c5804f69de3e6f073a6d3b3fe5a03b0",
+      "bytes": 11001
+    },
+    {
+      "path": "assets/pets/z_monkey/walk_0_right.png",
+      "sha256": "07405ca2a052ba02a3de90029610717fe4f8d71a7427860843986a8359bad39c",
+      "bytes": 13423
+    },
+    {
+      "path": "assets/pets/z_monkey/walk_1_right.png",
+      "sha256": "1e4d39fe3ed20ef87adb5cfa5056653ccb006a418e7241719e3ee90d01f199a1",
+      "bytes": 13223
+    },
+    {
+      "path": "assets/pets/z_ox/eat_0_right.png",
+      "sha256": "7d8838d6e388bcd0a0f48ab37c5ede619f1e520a335853577cb15358b32ac620",
+      "bytes": 11599
+    },
+    {
+      "path": "assets/pets/z_ox/eat_1_right.png",
+      "sha256": "7d8838d6e388bcd0a0f48ab37c5ede619f1e520a335853577cb15358b32ac620",
+      "bytes": 11599
+    },
+    {
+      "path": "assets/pets/z_ox/happy_0_right.png",
+      "sha256": "401ce53b5c3d3a2753024fee04e24d9c3cec763d2340e4572676df9c60b886cd",
+      "bytes": 11932
+    },
+    {
+      "path": "assets/pets/z_ox/happy_1_right.png",
+      "sha256": "6e8741f40bac086ccc0a078939cec87d81df997b6473b6693dbc2749abe1c0ca",
+      "bytes": 11943
+    },
+    {
+      "path": "assets/pets/z_ox/idle_0_right.png",
+      "sha256": "98517cda0298645ed12a264ad1a87486ebf597beeeef2cb07372f59728639a2d",
+      "bytes": 11857
+    },
+    {
+      "path": "assets/pets/z_ox/idle_1_right.png",
+      "sha256": "98517cda0298645ed12a264ad1a87486ebf597beeeef2cb07372f59728639a2d",
+      "bytes": 11857
+    },
+    {
+      "path": "assets/pets/z_ox/play_0_right.png",
+      "sha256": "a0d6c192b02e268e0d65ccd2d0864d9941f77ad3c51072aacd8b43b0fa2e38cd",
+      "bytes": 11977
+    },
+    {
+      "path": "assets/pets/z_ox/play_1_right.png",
+      "sha256": "db78a87fdf99ef1bfeeacb46cd1c83b45fd6efbab1a724ee7f9224b0ff9f00dc",
+      "bytes": 11851
+    },
+    {
+      "path": "assets/pets/z_ox/sad_0_right.png",
+      "sha256": "a5947ee99ade4b8c95616e2e41eedef823f72f5a08fd196f13e66ec1319f334f",
+      "bytes": 11901
+    },
+    {
+      "path": "assets/pets/z_ox/sad_1_right.png",
+      "sha256": "a5947ee99ade4b8c95616e2e41eedef823f72f5a08fd196f13e66ec1319f334f",
+      "bytes": 11901
+    },
+    {
+      "path": "assets/pets/z_ox/sleep_0_right.png",
+      "sha256": "aec3c5dfc06adb47c5aff4ff8f3caa91c0eabc786f9c8b1b035866a149b1097a",
+      "bytes": 9545
+    },
+    {
+      "path": "assets/pets/z_ox/sleep_1_right.png",
+      "sha256": "aec3c5dfc06adb47c5aff4ff8f3caa91c0eabc786f9c8b1b035866a149b1097a",
+      "bytes": 9545
+    },
+    {
+      "path": "assets/pets/z_ox/walk_0_right.png",
+      "sha256": "98517cda0298645ed12a264ad1a87486ebf597beeeef2cb07372f59728639a2d",
+      "bytes": 11857
+    },
+    {
+      "path": "assets/pets/z_ox/walk_1_right.png",
+      "sha256": "29d9f7b78f838ac04259109a8f77dfcff15ee5c0a5f0786d9a4d967a77b14bf4",
+      "bytes": 11659
+    },
+    {
+      "path": "assets/pets/z_pig/eat_0_right.png",
+      "sha256": "26f38dd34eeaaba9189d505ce281dee018a9ea97ac6e1ff598afa21f4776585d",
+      "bytes": 11509
+    },
+    {
+      "path": "assets/pets/z_pig/eat_1_right.png",
+      "sha256": "26f38dd34eeaaba9189d505ce281dee018a9ea97ac6e1ff598afa21f4776585d",
+      "bytes": 11509
+    },
+    {
+      "path": "assets/pets/z_pig/happy_0_right.png",
+      "sha256": "babd185d27c6532dac9cb1bd3663aa9746337f666b6bdd116ff61c4801be71e7",
+      "bytes": 11807
+    },
+    {
+      "path": "assets/pets/z_pig/happy_1_right.png",
+      "sha256": "0c80b73c47bd69740962a3760304981eb5f2ed0921d2cdbc6f3fa3059346dde7",
+      "bytes": 11818
+    },
+    {
+      "path": "assets/pets/z_pig/idle_0_right.png",
+      "sha256": "b30fa6cae748940b4afa43f007be8da8912cf7b07145fa43dec7fb624fff14b3",
+      "bytes": 11741
+    },
+    {
+      "path": "assets/pets/z_pig/idle_1_right.png",
+      "sha256": "b30fa6cae748940b4afa43f007be8da8912cf7b07145fa43dec7fb624fff14b3",
+      "bytes": 11741
+    },
+    {
+      "path": "assets/pets/z_pig/play_0_right.png",
+      "sha256": "76e5f8ca8fcd6a23415a4c9d5de2aab2ae819f6506cc98a1abef8501e27806c0",
+      "bytes": 11848
+    },
+    {
+      "path": "assets/pets/z_pig/play_1_right.png",
+      "sha256": "ccf8f9a5c9aed89861f423de537d992b4d790f513b6ab63ce413fcbff227e51b",
+      "bytes": 11798
+    },
+    {
+      "path": "assets/pets/z_pig/sad_0_right.png",
+      "sha256": "2e90d171dfae456e27479bb1385bea4f39a85fa57799efe9f134709bc4fc7f2d",
+      "bytes": 11783
+    },
+    {
+      "path": "assets/pets/z_pig/sad_1_right.png",
+      "sha256": "2e90d171dfae456e27479bb1385bea4f39a85fa57799efe9f134709bc4fc7f2d",
+      "bytes": 11783
+    },
+    {
+      "path": "assets/pets/z_pig/sleep_0_right.png",
+      "sha256": "dcf19b6052a15f4452706ff8dad318eb8e045bde3733b667b0ca6cd2315a27e4",
+      "bytes": 9701
+    },
+    {
+      "path": "assets/pets/z_pig/sleep_1_right.png",
+      "sha256": "dcf19b6052a15f4452706ff8dad318eb8e045bde3733b667b0ca6cd2315a27e4",
+      "bytes": 9701
+    },
+    {
+      "path": "assets/pets/z_pig/walk_0_right.png",
+      "sha256": "b30fa6cae748940b4afa43f007be8da8912cf7b07145fa43dec7fb624fff14b3",
+      "bytes": 11741
+    },
+    {
+      "path": "assets/pets/z_pig/walk_1_right.png",
+      "sha256": "4bd12937af703a391c6c06c547cc0bacca0a7172adc4d8cd35747e5a0dc21dfd",
+      "bytes": 11549
+    },
+    {
+      "path": "assets/pets/z_rabbit/eat_0_right.png",
+      "sha256": "9be039344675070214a5c7a690a20685b5f77b58c9ce8bee35fa5a02d0e3837c",
+      "bytes": 11262
+    },
+    {
+      "path": "assets/pets/z_rabbit/eat_1_right.png",
+      "sha256": "9be039344675070214a5c7a690a20685b5f77b58c9ce8bee35fa5a02d0e3837c",
+      "bytes": 11262
+    },
+    {
+      "path": "assets/pets/z_rabbit/happy_0_right.png",
+      "sha256": "6b92f8d7ba3defd01044da5855a34ea27e177cc2d791f1cdf11c5524a9e15046",
+      "bytes": 11393
+    },
+    {
+      "path": "assets/pets/z_rabbit/happy_1_right.png",
+      "sha256": "96310783942727e4bb43ca7a8c121de52829572cfdd05c7758d49ad6845004bc",
+      "bytes": 11390
+    },
+    {
+      "path": "assets/pets/z_rabbit/idle_0_right.png",
+      "sha256": "a755c87a64ada00127997219b38e21da8cec4854deacd9d15d88068d1e1dd3f7",
+      "bytes": 11373
+    },
+    {
+      "path": "assets/pets/z_rabbit/idle_1_right.png",
+      "sha256": "a755c87a64ada00127997219b38e21da8cec4854deacd9d15d88068d1e1dd3f7",
+      "bytes": 11373
+    },
+    {
+      "path": "assets/pets/z_rabbit/play_0_right.png",
+      "sha256": "ad2c18aa889536f7646e7ca08a9e66b5b40cf73ea329213c3210bea61f7da67e",
+      "bytes": 11107
+    },
+    {
+      "path": "assets/pets/z_rabbit/play_1_right.png",
+      "sha256": "ce581a971f5073ca95bc7012058d0110256eb989b29b3b30691cf58f1c682ad1",
+      "bytes": 11110
+    },
+    {
+      "path": "assets/pets/z_rabbit/sad_0_right.png",
+      "sha256": "a6fdb9385e3ec74bb5b3a607f5b07baa744523c637aea2d352669623512abad1",
+      "bytes": 11426
+    },
+    {
+      "path": "assets/pets/z_rabbit/sad_1_right.png",
+      "sha256": "a6fdb9385e3ec74bb5b3a607f5b07baa744523c637aea2d352669623512abad1",
+      "bytes": 11426
+    },
+    {
+      "path": "assets/pets/z_rabbit/sleep_0_right.png",
+      "sha256": "822a62a543d9dc99425f4dfe9e28de7456f37af610414ad5950ea295b5e14376",
+      "bytes": 9775
+    },
+    {
+      "path": "assets/pets/z_rabbit/sleep_1_right.png",
+      "sha256": "822a62a543d9dc99425f4dfe9e28de7456f37af610414ad5950ea295b5e14376",
+      "bytes": 9775
+    },
+    {
+      "path": "assets/pets/z_rabbit/walk_0_right.png",
+      "sha256": "a755c87a64ada00127997219b38e21da8cec4854deacd9d15d88068d1e1dd3f7",
+      "bytes": 11373
+    },
+    {
+      "path": "assets/pets/z_rabbit/walk_1_right.png",
+      "sha256": "12133da43ad3b63e162fd43b2bf335bd2fa7579229177ed24f52c2beaca14f23",
+      "bytes": 11381
+    },
+    {
+      "path": "assets/pets/z_rat/eat_0_right.png",
+      "sha256": "5e05a0740b6b78bdbdbfbbd8253f0a62a80f3051e1ebf4975d85459b56695602",
+      "bytes": 10225
+    },
+    {
+      "path": "assets/pets/z_rat/eat_1_right.png",
+      "sha256": "5e05a0740b6b78bdbdbfbbd8253f0a62a80f3051e1ebf4975d85459b56695602",
+      "bytes": 10225
+    },
+    {
+      "path": "assets/pets/z_rat/happy_0_right.png",
+      "sha256": "d7d0f1d44dd95cd02b961f0a2594788dbbef96a0ade188ba50f4976f11a3d681",
+      "bytes": 10335
+    },
+    {
+      "path": "assets/pets/z_rat/happy_1_right.png",
+      "sha256": "05f5f46008d7aee952b67b3841401f54ab2cec7d9d0a9a7f8846a18f638ad6fb",
+      "bytes": 10344
+    },
+    {
+      "path": "assets/pets/z_rat/idle_0_right.png",
+      "sha256": "de5e8ab10e4326f4ab5a86ffbfc08334acf3e4b46355e765f1acafa72890f667",
+      "bytes": 10257
+    },
+    {
+      "path": "assets/pets/z_rat/idle_1_right.png",
+      "sha256": "de5e8ab10e4326f4ab5a86ffbfc08334acf3e4b46355e765f1acafa72890f667",
+      "bytes": 10257
+    },
+    {
+      "path": "assets/pets/z_rat/play_0_right.png",
+      "sha256": "cab55cbb13b5f1ee1c1d654681c442331de3cf379fa8bbe60bd0752c5098e7d8",
+      "bytes": 10171
+    },
+    {
+      "path": "assets/pets/z_rat/play_1_right.png",
+      "sha256": "3b457dab1e1a1e11bb9d57241082b6b2b74b39a7e925ff8cee651a09268da7f1",
+      "bytes": 10155
+    },
+    {
+      "path": "assets/pets/z_rat/sad_0_right.png",
+      "sha256": "db9c6d48e09b183f8720f23d366881a1b02da6e2ae5ac9b68e07116931fef7db",
+      "bytes": 10302
+    },
+    {
+      "path": "assets/pets/z_rat/sad_1_right.png",
+      "sha256": "db9c6d48e09b183f8720f23d366881a1b02da6e2ae5ac9b68e07116931fef7db",
+      "bytes": 10302
+    },
+    {
+      "path": "assets/pets/z_rat/sleep_0_right.png",
+      "sha256": "9da99bb82b47cafb9f1aa9b2cc88e6664251d85f63d215731b982497fc1985f4",
+      "bytes": 8850
+    },
+    {
+      "path": "assets/pets/z_rat/sleep_1_right.png",
+      "sha256": "9da99bb82b47cafb9f1aa9b2cc88e6664251d85f63d215731b982497fc1985f4",
+      "bytes": 8850
+    },
+    {
+      "path": "assets/pets/z_rat/walk_0_right.png",
+      "sha256": "de5e8ab10e4326f4ab5a86ffbfc08334acf3e4b46355e765f1acafa72890f667",
+      "bytes": 10257
+    },
+    {
+      "path": "assets/pets/z_rat/walk_1_right.png",
+      "sha256": "c604cb11105d7a27559f781c7320d2c4d9b1df1b71cd0525133115747b20accc",
+      "bytes": 9942
+    },
+    {
+      "path": "assets/pets/z_rooster/eat_0_right.png",
+      "sha256": "6a1bf87946892ff84a5391765fc544f1882d41bfc99b4096314eae3926f7e875",
+      "bytes": 11583
+    },
+    {
+      "path": "assets/pets/z_rooster/eat_1_right.png",
+      "sha256": "6a1bf87946892ff84a5391765fc544f1882d41bfc99b4096314eae3926f7e875",
+      "bytes": 11583
+    },
+    {
+      "path": "assets/pets/z_rooster/happy_0_right.png",
+      "sha256": "93b5e5fb08f524a3a67f9fa230a0832ae0e27a046495170c9515dd55792d1f12",
+      "bytes": 11602
+    },
+    {
+      "path": "assets/pets/z_rooster/happy_1_right.png",
+      "sha256": "151b59161d753544f15eac995109ccdd4bcf233eb6c3ffd8aa2455f4831e47af",
+      "bytes": 11617
+    },
+    {
+      "path": "assets/pets/z_rooster/idle_0_right.png",
+      "sha256": "3473a5522a7970d8962c9f8e761c6c273536f1d4801f5c547de6710bd01a01a4",
+      "bytes": 11547
+    },
+    {
+      "path": "assets/pets/z_rooster/idle_1_right.png",
+      "sha256": "3473a5522a7970d8962c9f8e761c6c273536f1d4801f5c547de6710bd01a01a4",
+      "bytes": 11547
+    },
+    {
+      "path": "assets/pets/z_rooster/play_0_right.png",
+      "sha256": "2c9bf18cd84832473270a08b170dbc32e1c076fcf5153e58b8d16aed372113d7",
+      "bytes": 11719
+    },
+    {
+      "path": "assets/pets/z_rooster/play_1_right.png",
+      "sha256": "16d35cdf9d102486162ab23c5e4d5c20b18ed2a039069fd6f96d9a4b1437d8bc",
+      "bytes": 11725
+    },
+    {
+      "path": "assets/pets/z_rooster/sad_0_right.png",
+      "sha256": "724acd4835991e86eda3f0d0194271623c84e2b5ab6c6992c4ffd3cd6b381131",
+      "bytes": 11589
+    },
+    {
+      "path": "assets/pets/z_rooster/sad_1_right.png",
+      "sha256": "724acd4835991e86eda3f0d0194271623c84e2b5ab6c6992c4ffd3cd6b381131",
+      "bytes": 11589
+    },
+    {
+      "path": "assets/pets/z_rooster/sleep_0_right.png",
+      "sha256": "efa8a9b010ed86f4d20d33c6a80c89401b988099353782813c92b10f26c71fcf",
+      "bytes": 9717
+    },
+    {
+      "path": "assets/pets/z_rooster/sleep_1_right.png",
+      "sha256": "efa8a9b010ed86f4d20d33c6a80c89401b988099353782813c92b10f26c71fcf",
+      "bytes": 9717
+    },
+    {
+      "path": "assets/pets/z_rooster/walk_0_right.png",
+      "sha256": "3473a5522a7970d8962c9f8e761c6c273536f1d4801f5c547de6710bd01a01a4",
+      "bytes": 11547
+    },
+    {
+      "path": "assets/pets/z_rooster/walk_1_right.png",
+      "sha256": "4ac624bf06d717b2d34b5bf4e10846fbd5fab6ae277015c709393414b09be4c8",
+      "bytes": 11319
+    },
+    {
+      "path": "assets/pets/z_sheep/eat_0_right.png",
+      "sha256": "39a3f4efa8fe29ab3d21348110a857fd38887bbc04dd4abacc2921f68a71ea66",
+      "bytes": 11900
+    },
+    {
+      "path": "assets/pets/z_sheep/eat_1_right.png",
+      "sha256": "39a3f4efa8fe29ab3d21348110a857fd38887bbc04dd4abacc2921f68a71ea66",
+      "bytes": 11900
+    },
+    {
+      "path": "assets/pets/z_sheep/happy_0_right.png",
+      "sha256": "b7d2c246c57111c8f8f95ba353b5679d21f6252b3094083228ac5f9d044e2220",
+      "bytes": 12206
+    },
+    {
+      "path": "assets/pets/z_sheep/happy_1_right.png",
+      "sha256": "1c1aa7c9aec9ed3aa3549d67073e92f9945a9a37b8016bf6bfef4a91ca99d2d3",
+      "bytes": 12217
+    },
+    {
+      "path": "assets/pets/z_sheep/idle_0_right.png",
+      "sha256": "7c9c2cdde180709885d8826a3cdb90756ec4a0a71f43ea245baec03a13d202cb",
+      "bytes": 12134
+    },
+    {
+      "path": "assets/pets/z_sheep/idle_1_right.png",
+      "sha256": "7c9c2cdde180709885d8826a3cdb90756ec4a0a71f43ea245baec03a13d202cb",
+      "bytes": 12134
+    },
+    {
+      "path": "assets/pets/z_sheep/play_0_right.png",
+      "sha256": "39634708eac49a48dbf0688a291a1869231efb01b9d01971eaa4bc296161a4d6",
+      "bytes": 12185
+    },
+    {
+      "path": "assets/pets/z_sheep/play_1_right.png",
+      "sha256": "b708948b3021792fc278531a7007838f3add8e505716ca77166b24a54035b610",
+      "bytes": 12036
+    },
+    {
+      "path": "assets/pets/z_sheep/sad_0_right.png",
+      "sha256": "2f4e1ec6b7e790dfac6cb7b42cefb2107f5880f79e78cf2f8fc2938bd6124990",
+      "bytes": 12181
+    },
+    {
+      "path": "assets/pets/z_sheep/sad_1_right.png",
+      "sha256": "2f4e1ec6b7e790dfac6cb7b42cefb2107f5880f79e78cf2f8fc2938bd6124990",
+      "bytes": 12181
+    },
+    {
+      "path": "assets/pets/z_sheep/sleep_0_right.png",
+      "sha256": "1ab7d1b072442f84b7700b1b5c20154c3baa33122b9c7b55628d2457b3bdc926",
+      "bytes": 9641
+    },
+    {
+      "path": "assets/pets/z_sheep/sleep_1_right.png",
+      "sha256": "1ab7d1b072442f84b7700b1b5c20154c3baa33122b9c7b55628d2457b3bdc926",
+      "bytes": 9641
+    },
+    {
+      "path": "assets/pets/z_sheep/walk_0_right.png",
+      "sha256": "7c9c2cdde180709885d8826a3cdb90756ec4a0a71f43ea245baec03a13d202cb",
+      "bytes": 12134
+    },
+    {
+      "path": "assets/pets/z_sheep/walk_1_right.png",
+      "sha256": "5729fb402df3a965d9b8026f68afc303d00a06873528e19127e73c1e9a5f28e0",
+      "bytes": 11984
+    },
+    {
+      "path": "assets/pets/z_snake/eat_0_right.png",
+      "sha256": "8bc4d4bda1184c3b60703128df61cb0c816c61c16cdddaededea198c25ec4bec",
+      "bytes": 13504
+    },
+    {
+      "path": "assets/pets/z_snake/eat_1_right.png",
+      "sha256": "8bc4d4bda1184c3b60703128df61cb0c816c61c16cdddaededea198c25ec4bec",
+      "bytes": 13504
+    },
+    {
+      "path": "assets/pets/z_snake/happy_0_right.png",
+      "sha256": "abbff533d8c26aaa6c1822ad14d7d8ede36b4ee4117e3c23b317caf36672c9c9",
+      "bytes": 13658
+    },
+    {
+      "path": "assets/pets/z_snake/happy_1_right.png",
+      "sha256": "83584a69e4db3f1ae7df03767d8a7a0e38e5db5049e79940f0c82e90a8e8831c",
+      "bytes": 13669
+    },
+    {
+      "path": "assets/pets/z_snake/idle_0_right.png",
+      "sha256": "440099068e3d372dea2dacb46fd24a6538283824a85cefef8086eff4a0ca0a87",
+      "bytes": 13590
+    },
+    {
+      "path": "assets/pets/z_snake/idle_1_right.png",
+      "sha256": "440099068e3d372dea2dacb46fd24a6538283824a85cefef8086eff4a0ca0a87",
+      "bytes": 13590
+    },
+    {
+      "path": "assets/pets/z_snake/play_0_right.png",
+      "sha256": "72aa76519e0686c3cc6b3e3a6e2e27ee02178b35dbc3e2a01b6088f9716c4ed6",
+      "bytes": 13467
+    },
+    {
+      "path": "assets/pets/z_snake/play_1_right.png",
+      "sha256": "bedf2aed1b0b24b295be8d1f5524c716ea0f1123acf98fd7643ada9134c8289e",
+      "bytes": 13392
+    },
+    {
+      "path": "assets/pets/z_snake/sad_0_right.png",
+      "sha256": "5da127d792091ff78325e76c1fcb38f36bf6553b3d9f613c8eed5fdfc9ce3856",
+      "bytes": 13630
+    },
+    {
+      "path": "assets/pets/z_snake/sad_1_right.png",
+      "sha256": "5da127d792091ff78325e76c1fcb38f36bf6553b3d9f613c8eed5fdfc9ce3856",
+      "bytes": 13630
+    },
+    {
+      "path": "assets/pets/z_snake/sleep_0_right.png",
+      "sha256": "d771ad66689107e41a145b491452a3ccc9c97297f913705b4c78e5b74bd7b5f2",
+      "bytes": 11488
+    },
+    {
+      "path": "assets/pets/z_snake/sleep_1_right.png",
+      "sha256": "d771ad66689107e41a145b491452a3ccc9c97297f913705b4c78e5b74bd7b5f2",
+      "bytes": 11488
+    },
+    {
+      "path": "assets/pets/z_snake/walk_0_right.png",
+      "sha256": "440099068e3d372dea2dacb46fd24a6538283824a85cefef8086eff4a0ca0a87",
+      "bytes": 13590
+    },
+    {
+      "path": "assets/pets/z_snake/walk_1_right.png",
+      "sha256": "b58e9222e9fa74230859f1697012cec3cf5629fe5df2d0d37081e92fa030054d",
+      "bytes": 13329
+    },
+    {
+      "path": "assets/pets/z_tiger/eat_0_right.png",
+      "sha256": "5fcb2d2adfdea132c15464576327cffdfb58341ac1c70f37d0cbe4f9e11acdfe",
+      "bytes": 13015
+    },
+    {
+      "path": "assets/pets/z_tiger/eat_1_right.png",
+      "sha256": "5fcb2d2adfdea132c15464576327cffdfb58341ac1c70f37d0cbe4f9e11acdfe",
+      "bytes": 13015
+    },
+    {
+      "path": "assets/pets/z_tiger/happy_0_right.png",
+      "sha256": "f58a4919191544886e2aacf5d19ff70efcfd8e564d02597189c2662b30d2cc1c",
+      "bytes": 13411
+    },
+    {
+      "path": "assets/pets/z_tiger/happy_1_right.png",
+      "sha256": "c0fd795442631181860aedacecf1d2009932999cd8ddfd0411364a4e54d55424",
+      "bytes": 13418
+    },
+    {
+      "path": "assets/pets/z_tiger/idle_0_right.png",
+      "sha256": "a3f0b8d89faea57783de3d765335845eb74bece7608d588cf4273f4f273d9c36",
+      "bytes": 13336
+    },
+    {
+      "path": "assets/pets/z_tiger/idle_1_right.png",
+      "sha256": "a3f0b8d89faea57783de3d765335845eb74bece7608d588cf4273f4f273d9c36",
+      "bytes": 13336
+    },
+    {
+      "path": "assets/pets/z_tiger/play_0_right.png",
+      "sha256": "38b2cac0786ed488354756ccd5060145e0107940567d363099faf39f262aa0d0",
+      "bytes": 13285
+    },
+    {
+      "path": "assets/pets/z_tiger/play_1_right.png",
+      "sha256": "bd6a378b3ab7274f6cacfb3423ab3520cb10a96fc3b758b07073f0b433e422e9",
+      "bytes": 13121
+    },
+    {
+      "path": "assets/pets/z_tiger/sad_0_right.png",
+      "sha256": "9f9441455f2e36bb400da4539371dac134eb3113603768f852e025acd2bfc2e7",
+      "bytes": 13380
+    },
+    {
+      "path": "assets/pets/z_tiger/sad_1_right.png",
+      "sha256": "9f9441455f2e36bb400da4539371dac134eb3113603768f852e025acd2bfc2e7",
+      "bytes": 13380
+    },
+    {
+      "path": "assets/pets/z_tiger/sleep_0_right.png",
+      "sha256": "bf74e259226e1028553d7cd673e8e5f8acfd55c469448a858d61250b0d4adbff",
+      "bytes": 10889
+    },
+    {
+      "path": "assets/pets/z_tiger/sleep_1_right.png",
+      "sha256": "bf74e259226e1028553d7cd673e8e5f8acfd55c469448a858d61250b0d4adbff",
+      "bytes": 10889
+    },
+    {
+      "path": "assets/pets/z_tiger/walk_0_right.png",
+      "sha256": "a3f0b8d89faea57783de3d765335845eb74bece7608d588cf4273f4f273d9c36",
+      "bytes": 13336
+    },
+    {
+      "path": "assets/pets/z_tiger/walk_1_right.png",
+      "sha256": "92d2e3b87447cae8a4c1ff4e569593f4f30bf1a91080221e590a31a4ecef98c6",
+      "bytes": 13351
+    },
+    {
+      "path": "export_presets.cfg",
+      "sha256": "480e82baed2a88c8df3ad2f36f97138688eeca77aadaa23409ee130bc2a063df",
+      "bytes": 982
+    },
+    {
+      "path": "packaging/build_windows.ps1",
+      "sha256": "9aae1c0fcd5e99111dda01a7fd9acbdacfe5800657aa9f50b3230803b3cf3572",
+      "bytes": 5277
+    },
+    {
+      "path": "packaging/installer.nsi",
+      "sha256": "3f365ad7b81eb3145e0516101d0bf6aff972887ec98310b32d890878ca985299",
+      "bytes": 5285
+    },
+    {
+      "path": "project.godot",
+      "sha256": "7fd0b2a0183aeb6a57b111db60b0caed550fa817468f77e547192a005c4556fd",
+      "bytes": 1135
+    },
+    {
+      "path": "scenes/Main.tscn",
+      "sha256": "6f4faf8203d22f9d0ed7e133fb20c43294515486b249a636a92db9616982df46",
+      "bytes": 175
+    },
+    {
+      "path": "scripts/main.gd",
+      "sha256": "07957002259c251b9c09d6fe1f98d447da1d5f349c607d40e4da3ec41089bf84",
+      "bytes": 29133
+    },
+    {
+      "path": "scripts/save_store.gd",
+      "sha256": "2dcad048e8add238ef30436d9694680960e6e6dbe81bbec08cd73dae7cac152a",
+      "bytes": 9139
+    },
+    {
+      "path": "scripts/session_guard.gd",
+      "sha256": "259da0d078a376a74e0b100c3c4b7ac7a195a8853ddbdcb4a908a60b298d6ed9",
+      "bytes": 2078
+    },
+    {
+      "path": "tests/static_audit.py",
+      "sha256": "5dea3bcca82ed18c0226245e18fc482d328ff3fd42ad13e81e860e0373e45efb",
+      "bytes": 9500
+    },
+    {
+      "path": "tests/test_resources.gd",
+      "sha256": "24769bcaeaa5c356a8456d16798df2a2bf36b7863f368904a04e464b98acd87a",
+      "bytes": 989
+    },
+    {
+      "path": "tests/test_save_store.gd",
+      "sha256": "f0e864f03af0e6d7a9092138c280d4d5c2e2f9bc8a11a49dab9259b928ba721f",
+      "bytes": 4278
+    }
+  ]
+}

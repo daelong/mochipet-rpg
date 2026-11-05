@@ -1,0 +1,6 @@
+{
+  "decoded_png_files": 400,
+  "byte_identical_to_original": 400,
+  "decoder": "Pillow (actual pixel decode in this environment)",
+  "godot_texture_loading": "NOT RUN"
+}
