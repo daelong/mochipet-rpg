@@ -7,9 +7,11 @@ import {
   skillById,
   monsterById,
   type Monster,
+  homeActivityById,
+  type HomeActivityId,
 } from '@mochi/game-data';
 export const MAX_LEVEL = 20;
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 const integer = (min: number, max: number) => z.number().int().min(min).max(max);
 const ids = CHARACTERS.map((c) => c.id) as [string, ...string[]];
 export const PetSchema = z
@@ -31,6 +33,13 @@ export const PetSchema = z
     happiness: integer(0, 100),
     energy: integer(0, 100),
     bond: integer(0, 100),
+    hygiene: integer(0, 100),
+    toilet: integer(0, 100),
+    roomCleanliness: integer(0, 100),
+    homeActivities: z.record(
+      z.enum(['meal', 'bath', 'toilet', 'play', 'read', 'sleep', 'clean']),
+      integer(0, 1000000),
+    ),
     attackBonus: integer(0, 100),
     defenseBonus: integer(0, 50),
     agilityBonus: integer(0, 19),
@@ -45,6 +54,14 @@ export const PetSchema = z
   })
   .strict();
 export type Pet = z.infer<typeof PetSchema>;
+const LegacyPetSchema = PetSchema.omit({
+  hygiene: true,
+  toilet: true,
+  roomCleanliness: true,
+  homeActivities: true,
+})
+  .extend({ schema: z.literal(1) })
+  .strict();
 export const xpForLevel = (level: number) => 35 + level * 20;
 export function maxHp(p: Pet) {
   return characterById(p.characterId)!.stats.hp + (p.level - 1) * 7 + p.hpBonus;
@@ -62,7 +79,7 @@ export function agility(p: Pet) {
 }
 export function defaults(): Pet {
   return {
-    schema: 1,
+    schema: SCHEMA_VERSION,
     characterId: 'z_rabbit',
     name: '모찌',
     chosen: false,
@@ -74,6 +91,10 @@ export function defaults(): Pet {
     happiness: 80,
     energy: 85,
     bond: 0,
+    hygiene: 80,
+    toilet: 20,
+    roomCleanliness: 85,
+    homeActivities: {},
     attackBonus: 0,
     defenseBonus: 0,
     agilityBonus: 0,
@@ -86,6 +107,17 @@ export function defaults(): Pet {
   };
 }
 export function parsePet(raw: unknown): Pet {
+  if (raw && typeof raw === 'object' && 'schema' in raw && raw.schema === 1) {
+    const old = LegacyPetSchema.parse(raw);
+    raw = {
+      ...old,
+      schema: SCHEMA_VERSION,
+      hygiene: 80,
+      toilet: 20,
+      roomCleanliness: 85,
+      homeActivities: {},
+    };
+  }
   const p = PetSchema.parse(raw);
   if (p.hp > maxHp(p) || p.xp >= xpForLevel(p.level) || (p.level === MAX_LEVEL && p.xp !== 0))
     throw new Error('Invalid progression');
@@ -117,6 +149,14 @@ export interface Snapshot {
   skillCooldown: number;
   events: GameEvent[];
   paused: boolean;
+  place: Place;
+  homeActivity: HomeActivityState | null;
+}
+export type Place = 'yard' | 'home' | 'adventure';
+export interface HomeActivityState {
+  id: HomeActivityId;
+  remaining: number;
+  started: boolean;
 }
 export type Result = { ok: true; message: string } | { ok: false; message: string };
 /** Offline-only rules. A future server must own its own simulation and persisted economy. */
@@ -127,6 +167,8 @@ export class GameEngine {
   enemy: Enemy | null = null;
   paused = false;
   skillCooldown = 0;
+  place: Place = 'yard';
+  homeActivity: HomeActivityState | null = null;
   private attackCooldown = 0;
   private enemyCooldown = 0;
   private spawnCooldown = 0.5;
@@ -160,6 +202,8 @@ export class GameEngine {
     skillCooldown: Math.ceil(this.skillCooldown),
     events: [...this.events],
     paused: this.paused,
+    place: this.place,
+    homeActivity: this.homeActivity ? { ...this.homeActivity } : null,
   });
   private emit() {
     this.changed = false;
@@ -190,6 +234,7 @@ export class GameEngine {
     this.pet = { ...this.pet, characterId: c.id, chosen: true, hp: 0 };
     this.pet.hp = first ? maxHp(this.pet) : Math.floor(maxHp(this.pet) * ratio);
     this.stopHunt();
+    this.homeActivity = null;
     this.event('notice', `${c.animal} 친구와 모험을 시작해요!`);
     this.emit();
     return { ok: true, message: '친구를 선택했어요.' };
@@ -205,6 +250,8 @@ export class GameEngine {
     const z = ZONES.find((z) => z.id === id);
     if (!z || this.pet.level < z.level)
       return this.notice('아직 입장할 수 없는 사냥터예요.', false);
+    if (this.homeActivity) return this.notice('집에서 하던 활동을 마치거나 취소해 주세요.', false);
+    this.place = 'adventure';
     this.pet.zoneId = z.id;
     this.enemy = null;
     this.spawnCooldown = 0.8;
@@ -224,9 +271,11 @@ export class GameEngine {
       return this.notice('사냥을 멈추고 산책해요.');
     }
     if (!this.pet.chosen) return this.notice('먼저 함께할 친구를 선택해 주세요.', false);
+    if (this.homeActivity) return this.notice('집에서 하던 활동을 마치거나 취소해 주세요.', false);
     if (this.pet.hp <= Math.floor(maxHp(this.pet) * 0.25) || this.pet.energy < 10)
       return this.notice('조금 더 쉬고 사냥해요. HP와 체력이 필요해요.', false);
     this.hunting = true;
+    this.place = 'adventure';
     this.actionClock = 0;
     this.spawnCooldown = 0.5;
     this.action = 'walk';
@@ -237,6 +286,8 @@ export class GameEngine {
     this.emit();
   }
   care(kind: 'pet' | 'rest'): Result {
+    if (this.homeActivity) return this.notice('지금 하던 활동을 마친 뒤 함께해요.', false);
+    if (kind === 'rest' && this.place === 'home') return this.startHomeActivity('sleep');
     if (kind === 'rest') {
       this.stopHunt();
       this.action = 'sleep';
@@ -298,7 +349,7 @@ export class GameEngine {
         p.skillRank += item.amount;
         break;
     }
-    if (!this.hunting) {
+    if (!this.hunting && !this.homeActivity) {
       this.action = item.category === 'toy' ? 'play' : item.category === 'food' ? 'eat' : 'happy';
       this.actionClock = 3;
     }
@@ -306,11 +357,91 @@ export class GameEngine {
     this.emit();
     return { ok: true, message: `${item.name} 구매 완료!` };
   }
+  setPlace(place: Place): Result {
+    if (!['yard', 'home', 'adventure'].includes(place))
+      return this.notice('갈 수 없는 곳이에요.', false);
+    this.homeActivity = null;
+    this.actionClock = 0;
+    this.stopHunt();
+    this.place = place;
+    return this.notice(
+      place === 'home'
+        ? '포근한 우리 집에 도착했어요.'
+        : place === 'yard'
+          ? '집 앞 마당으로 나왔어요.'
+          : '사냥터로 산책을 나왔어요.',
+    );
+  }
+  startHomeActivity(id: string): Result {
+    const activity = homeActivityById(id);
+    if (!activity || this.place !== 'home' || !this.pet.chosen)
+      return this.notice('친구를 선택하고 집 안에서 활동해 주세요.', false);
+    if (this.homeActivity) return this.notice('지금 하던 활동을 마치거나 취소해 주세요.', false);
+    if (id === 'meal' && this.pet.hunger >= 95) return this.notice('지금은 배가 불러요.', false);
+    if (id === 'bath' && this.pet.hygiene >= 95) return this.notice('아직 뽀송뽀송해요.', false);
+    if (id === 'toilet' && this.pet.toilet <= 10)
+      return this.notice('아직 화장실에 가지 않아도 괜찮아요.', false);
+    if (id === 'clean' && this.pet.roomCleanliness >= 95)
+      return this.notice('방이 이미 깨끗해요.', false);
+    if (id === 'sleep' && this.pet.energy >= 95 && this.pet.hp === maxHp(this.pet))
+      return this.notice('푹 쉬어서 잠이 오지 않아요.', false);
+    if ((id === 'play' && this.pet.energy < 10) || (id === 'read' && this.pet.energy < 5))
+      return this.notice('먼저 침대에서 쉬고 싶어요.', false);
+    this.stopHunt();
+    this.homeActivity = { id: activity.id, remaining: activity.seconds, started: false };
+    this.actionClock = 0;
+    this.action = 'walk';
+    return this.notice(`${activity.furniture}로 가고 있어요.`);
+  }
+  arriveHomeActivity() {
+    if (!this.homeActivity || this.homeActivity.started || this.place !== 'home') return;
+    this.homeActivity.started = true;
+    this.action = homeActivityById(this.homeActivity.id)!.animation;
+    this.emit();
+  }
+  cancelHomeActivity(): Result {
+    this.homeActivity = null;
+    this.actionClock = 0;
+    this.action = 'idle';
+    return this.notice('활동을 멈췄어요. 완료한 돌봄만 기록해요.');
+  }
+  private finishHomeActivity() {
+    const activity = homeActivityById(this.homeActivity!.id)!;
+    this.homeActivity = null;
+    for (const [stat, amount] of Object.entries(activity.effects)) {
+      const key = stat as
+        | 'hunger'
+        | 'energy'
+        | 'toilet'
+        | 'hygiene'
+        | 'happiness'
+        | 'bond'
+        | 'hp'
+        | 'roomCleanliness';
+      this.pet[key] = Math.max(
+        0,
+        Math.min(key === 'hp' ? maxHp(this.pet) : 100, this.pet[key] + amount),
+      );
+    }
+    this.pet.homeActivities[activity.id] = Math.min(
+      1000000,
+      (this.pet.homeActivities[activity.id] ?? 0) + 1,
+    );
+    this.action = 'happy';
+    this.actionClock = 2;
+    this.event('care', `${activity.name} 완료!`);
+    this.emit();
+  }
   step(seconds: number, inRange: boolean) {
     if (this.paused || !this.pet.chosen) return;
     const dt = Math.min(0.1, Math.max(0, seconds));
     if (!Number.isFinite(dt) || dt === 0) return;
     this.publishClock += dt;
+    if (this.homeActivity?.started) {
+      this.homeActivity.remaining = Math.max(0, this.homeActivity.remaining - dt);
+      this.changed = true;
+      if (this.homeActivity.remaining <= 0.001) this.finishHomeActivity();
+    }
     this.actionClock = Math.max(0, this.actionClock - dt);
     this.guard = Math.max(0, this.guard - dt);
     const oldCooldown = Math.ceil(this.skillCooldown);
@@ -322,17 +453,29 @@ export class GameEngine {
       this.decay = 0;
       this.pet.hunger = Math.max(0, this.pet.hunger - 1);
       this.pet.happiness = Math.max(0, this.pet.happiness - 1);
+      this.pet.hygiene = Math.max(0, this.pet.hygiene - (this.place === 'adventure' ? 2 : 1));
+      this.pet.toilet = Math.min(100, this.pet.toilet + 2);
+      if (this.place === 'home')
+        this.pet.roomCleanliness = Math.max(0, this.pet.roomCleanliness - 1);
+      if (this.pet.hygiene <= 30 || this.pet.roomCleanliness <= 30 || this.pet.toilet >= 80)
+        this.pet.happiness = Math.max(0, this.pet.happiness - 1);
       if (this.hunting) this.pet.energy = Math.max(0, this.pet.energy - 2);
       this.changed = true;
     }
     if (!this.hunting) {
-      if (this.healClock >= 2) {
+      if (this.homeActivity) this.healClock = 0;
+      if (!this.homeActivity && this.healClock >= 2) {
         this.healClock = 0;
         this.pet.hp = Math.min(maxHp(this.pet), this.pet.hp + (this.action === 'sleep' ? 5 : 2));
         this.pet.energy = Math.min(100, this.pet.energy + 2);
         this.changed = true;
       }
-      if (this.actionClock === 0 && this.action !== 'walk' && this.action !== 'idle') {
+      if (
+        !this.homeActivity &&
+        this.actionClock === 0 &&
+        this.action !== 'walk' &&
+        this.action !== 'idle'
+      ) {
         this.action = 'idle';
         this.changed = true;
       }

@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { defaults } from '@mochi/shared';
-import { SaveRepository, SAVE_KEY, BACKUP_KEY, RESET_KEY, type StoragePort } from './storage';
+import {
+  SaveRepository,
+  SAVE_KEY,
+  BACKUP_KEY,
+  RESET_KEY,
+  HOME_UPGRADE_KEY,
+  type StoragePort,
+} from './storage';
 class MemoryStorage implements StoragePort {
   data = new Map<string, string>();
   failKey = '';
@@ -13,6 +20,34 @@ class MemoryStorage implements StoragePort {
   }
 }
 describe('versioned local saves', () => {
+  it('upgrades v1 home fields and keeps the original raw save as the previous backup', () => {
+    const { hygiene, toilet, roomCleanliness, homeActivities, ...legacy } = defaults();
+    const raw = JSON.stringify({ ...legacy, schema: 1, name: '옛 친구', coins: 123 });
+    const s = new MemoryStorage(),
+      r = new SaveRepository(s);
+    s.setItem(SAVE_KEY, raw);
+    const result = r.load();
+    expect(result.readOnly).toBe(false);
+    expect(result.pet.hygiene).toBe(80);
+    expect(s.getItem(SAVE_KEY)).toBe(raw);
+    r.save(result.pet);
+    expect(s.getItem(BACKUP_KEY)).toBe(raw);
+    expect(s.getItem(HOME_UPGRADE_KEY)).toBe(raw);
+    expect(JSON.parse(s.getItem(SAVE_KEY)!).schema).toBe(2);
+    expect(r.load().pet.coins).toBe(123);
+    r.save(result.pet);
+    expect(s.getItem(HOME_UPGRADE_KEY)).toBe(raw);
+  });
+  it('does not overwrite an old save when its home-upgrade backup fails', () => {
+    const { hygiene, toilet, roomCleanliness, homeActivities, ...legacy } = defaults();
+    const raw = JSON.stringify({ ...legacy, schema: 1 });
+    const s = new MemoryStorage(),
+      r = new SaveRepository(s);
+    s.setItem(SAVE_KEY, raw);
+    s.failKey = HOME_UPGRADE_KEY;
+    expect(() => r.save(r.load().pet)).toThrow();
+    expect(s.getItem(SAVE_KEY)).toBe(raw);
+  });
   it('does not replace the primary if writing its previous backup fails', () => {
     const s = new MemoryStorage(),
       r = new SaveRepository(s);

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  Home,
   PawPrint,
   ShoppingBag,
   Sparkles,
@@ -19,34 +18,41 @@ import {
   Check,
   LockKeyhole,
   X,
-  ArrowUpRight,
   Moon,
   CircleHelp,
   CloudOff,
   CheckCircle2,
-  Play,
   Square,
   Pencil,
   Sprout,
   ArrowRight,
   Download,
+  House,
+  Bath,
+  Toilet,
+  Bubbles,
+  Camera,
+  Expand,
+  LocateFixed,
 } from 'lucide-react';
 import {
   CHARACTERS,
   SHOP,
   SKILLS,
   ZONES,
+  HOME_ACTIVITIES,
+  homeActivityById,
   characterById,
   petAsset,
-  type Character,
 } from '@mochi/game-data';
 import { MAX_LEVEL, agility, attack, defense, maxHp, xpForLevel } from '@mochi/shared';
 import { GameCanvas } from './game/GameCanvas';
+import { careMotion } from './game/careMotion';
 import { resetGame, saveNow, startSession, useGame } from './state/game';
-import { BACKUP_KEY, RESET_KEY, SAVE_KEY } from './state/storage';
-type Page = 'home' | 'pet' | 'shop' | 'skills' | 'journal' | 'settings';
+import { BACKUP_KEY, RESET_KEY, SAVE_KEY, HOME_UPGRADE_KEY } from './state/storage';
+type Page = 'home' | 'map' | 'pet' | 'shop' | 'skills' | 'journal' | 'settings';
 const navigation = [
-  { id: 'home', label: '우리의 하루', icon: Home },
+  { id: 'map', label: '사냥터', icon: MapPin },
   { id: 'pet', label: '나의 친구', icon: PawPrint },
   { id: 'shop', label: '모찌 상점', icon: ShoppingBag },
   { id: 'skills', label: '스킬 도감', icon: Sparkles },
@@ -201,691 +207,935 @@ function CharacterPicker({ onClose }: { onClose: () => void }) {
   );
 }
 export default function App() {
-  const [page, setPage] = useState<Page>('home');
+  const [page, setPage] = useState<Page | null>(null);
   const [picker, setPicker] = useState(false);
   const [help, setHelp] = useState(false);
   const [reset, setReset] = useState(false);
   const [shopFilter, setShopFilter] = useState('all');
-  const { engine, snapshot, access, notice, saveState, readyScene } = useGame();
+  const panel = useRef<HTMLElement>(null);
+  const trigger = useRef<HTMLButtonElement | null>(null);
+  const {
+    engine,
+    snapshot,
+    access,
+    notice,
+    saveState,
+    readyScene,
+    sceneError,
+    activityCamera,
+    cameraMode,
+  } = useGame();
   const p = snapshot.pet;
   const char = characterById(p.characterId)!;
   const skill = SKILLS.find((s) => s.id === char.skillId)!;
   const zone = ZONES.find((z) => z.id === p.zoneId)!;
   const enabled = access === 'ready';
+  const atHome = snapshot.place === 'home';
+  const activity = snapshot.homeActivity ? homeActivityById(snapshot.homeActivity.id)! : null;
+  const care =
+    snapshot.homeActivity?.started && snapshot.homeActivity.id !== 'meal'
+      ? careMotion(snapshot.homeActivity.id, activity!.seconds - snapshot.homeActivity.remaining)
+      : null;
+  const locationName = atHome ? '우리 집' : snapshot.place === 'yard' ? '집 앞 마당' : zone.name;
+  const filming = atHome && Boolean(activity) && activityCamera && !page;
   const [draftName, setDraftName] = useState(p.name);
   const [feedback, setFeedback] = useState('');
   useEffect(startSession, []);
   useEffect(() => setDraftName(p.name), [p.name]);
+  useEffect(() => {
+    if (snapshot.place !== 'home' && page === 'home') setPage(null);
+  }, [snapshot.place, page]);
+  const lastEvent = snapshot.events.at(-1);
+  useEffect(() => {
+    if (atHome && lastEvent?.kind === 'notice') setFeedback(lastEvent.message);
+  }, [atHome, lastEvent?.id]);
+  useEffect(() => {
+    if (page) panel.current?.focus();
+  }, [page]);
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = window.setTimeout(() => setFeedback(''), 4000);
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
   function buy(id: string) {
     if (!enabled) return;
     const result = engine.purchase(id);
     setFeedback(result.message);
     if (result.ok) saveNow();
   }
-  function changePage(id: Page) {
-    setPage(id);
+  function closePanel() {
+    setPage(null);
+    trigger.current?.focus();
+  }
+  function doHomeActivity(id: string) {
+    if (!enabled) return;
+    const result = engine.startHomeActivity(id);
+    setFeedback(result.message);
+    if (result.ok) setPage(null);
+  }
+  function changePage(id: Page, button: HTMLButtonElement) {
+    trigger.current = button;
+    if (page === id) closePanel();
+    else setPage(id);
     setFeedback('');
   }
   const progress = p.level === MAX_LEVEL ? 100 : Math.round((p.xp / xpForLevel(p.level)) * 100);
+  const homeProgress = activity && snapshot.homeActivity && (
+    <div className="home-progress glass" role="group" aria-label="집 안 활동 진행">
+      <div>
+        <span className="activity-emoji">{activity.icon}</span>
+        <div>
+          <b>{activity.name}</b>
+          <p>
+            {snapshot.homeActivity.started
+              ? `${Math.ceil(snapshot.homeActivity.remaining)}초 남았어요`
+              : `${activity.furniture}로 이동 중`}
+          </p>
+        </div>
+        <button
+          className="icon-button"
+          aria-label="활동 취소"
+          disabled={!enabled}
+          onClick={() => setFeedback(engine.cancelHomeActivity().message)}
+        >
+          <X size={18} />
+        </button>
+      </div>
+      <div
+        className="meter-track"
+        role="progressbar"
+        aria-label="활동 진행률"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round((1 - snapshot.homeActivity.remaining / activity.seconds) * 100)}
+      >
+        <i
+          style={{
+            width: `${(1 - snapshot.homeActivity.remaining / activity.seconds) * 100}%`,
+            background: '#e2d69b',
+          }}
+        />
+      </div>
+      <button
+        className="camera-view-button"
+        onClick={() => {
+          useGame.setState({
+            activityCamera: !activityCamera,
+            ...(!activityCamera ? { cameraMode: 'follow' as const } : {}),
+          });
+          if (!activityCamera) setPage(null);
+        }}
+      >
+        {activityCamera ? <Expand size={14} /> : <Camera size={14} />}
+        {activityCamera ? '방 전체 보기' : '활동 카메라'}
+      </button>
+    </div>
+  );
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <a
-          className="brand"
-          href="#"
-          aria-label="모찌펫 홈"
+    <main
+      className="game-shell"
+      id="main-content"
+      data-place={snapshot.place}
+      data-activity-camera={filming}
+      data-camera-mode={cameraMode}
+    >
+      <GameCanvas />
+      {filming && (
+        <div className="activity-broadcast" aria-label="모찌 활동 카메라">
+          <div className="broadcast-top">
+            <span className="broadcast-mark">
+              <i />
+              <Camera size={15} />
+              <b>{p.name} CAM</b>
+            </span>
+            <span>
+              {snapshot.homeActivity?.started ? '오늘의 작은 순간' : '친구를 따라가는 중'}
+            </span>
+          </div>
+          <div className="broadcast-corners" />
+          <div className="broadcast-caption">
+            <span>MY LITTLE MOMENT</span>
+            <h2>
+              {activity!.icon}{' '}
+              {snapshot.homeActivity?.started ? activity!.name : `${activity!.furniture}로 가는 길`}
+            </h2>
+            <p>
+              {snapshot.homeActivity?.started
+                ? activity!.id === 'meal'
+                  ? '냠냠, 맛있게 먹고 있어요'
+                  : care?.caption
+                : '카메라가 친구를 따라가요'}
+            </p>
+          </div>
+        </div>
+      )}
+      {!readyScene && (
+        <div
+          className={`scene-loading${sceneError ? ' scene-load-failed' : ''}`}
+          role={sceneError ? 'alert' : undefined}
+        >
+          {sceneError ? (
+            <div>
+              <p>{sceneError}</p>
+              <button className="game-button" onClick={() => location.reload()}>
+                화면 다시 연결
+              </button>
+            </div>
+          ) : (
+            '작은 세상을 불러오는 중…'
+          )}
+        </div>
+      )}
+      <header className="game-hud" aria-label="모험 상태">
+        <button
+          className="player-hud glass"
+          aria-label="나의 친구 열기"
+          aria-expanded={page === 'pet'}
+          aria-controls="game-panel"
+          onClick={(e) => changePage('pet', e.currentTarget)}
+        >
+          <span className="portrait">
+            <img src={petAsset(p.characterId)} alt="" />
+            <span>Lv.{p.level}</span>
+          </span>
+          <span className="player-info">
+            <span className="player-name">
+              <b>{p.name}</b>
+              <small>{char.animal}</small>
+            </span>
+            <span className="hud-hp">
+              <Heart size={11} fill="currentColor" />
+              <span className="hud-track">
+                <i style={{ width: `${(p.hp / maxHp(p)) * 100}%` }} />
+              </span>
+              <b>
+                {p.hp}/{maxHp(p)}
+              </b>
+            </span>
+            <span className="xp-label">
+              <span>{p.level === MAX_LEVEL ? '싱글 최고 레벨' : 'EXP'}</span>
+              <span>{p.level === MAX_LEVEL ? 'MAX' : `${p.xp} / ${xpForLevel(p.level)}`}</span>
+            </span>
+            <span className="xp-track">
+              <i style={{ width: `${progress}%` }} />
+            </span>
+          </span>
+        </button>
+        <div className="location-hud">
+          <button
+            className="location-button glass"
+            aria-label="사냥터 열기"
+            aria-expanded={page === 'map'}
+            aria-controls="game-panel"
+            onClick={(e) => changePage('map', e.currentTarget)}
+          >
+            <MapPin size={16} />
+            <span>
+              {locationName}
+              <small>
+                {snapshot.place === 'adventure' ? `Lv.${zone.level}+` : atHome ? 'HOME' : 'YARD'}
+              </small>
+            </span>
+            <ChevronRight size={14} />
+          </button>
+          <span className="activity-badge">
+            <span />
+            {activity
+              ? activity.name
+              : snapshot.hunting
+                ? '자동 사냥 중'
+                : snapshot.action === 'sleep'
+                  ? '쉬는 중'
+                  : '자유 산책'}
+          </span>
+        </div>
+        <div className="coin-wallet glass" aria-label={`보유 코인 ${p.coins}`}>
+          <Coins size={19} />
+          <b data-testid="coins">{p.coins.toLocaleString()}</b>
+        </div>
+      </header>
+      {atHome && (
+        <div className="home-needs" aria-label="집 안 돌봄 상태">
+          <span className="glass">
+            <Utensils size={13} />
+            배부름 <b>{p.hunger}</b>
+          </span>
+          <span className="glass">
+            <Bath size={13} />
+            청결 <b data-testid="hygiene">{p.hygiene}</b>
+          </span>
+          <span className={`glass ${p.toilet >= 70 ? 'need-attention' : ''}`}>
+            <Toilet size={13} />
+            화장실 <b data-testid="toilet">{p.toilet}</b>
+          </span>
+          <span className="glass">
+            <Bubbles size={13} />방 상태 <b>{p.roomCleanliness}</b>
+          </span>
+        </div>
+      )}
+      {(notice || access === 'loading') && (
+        <div
+          className={`notice glass ${access === 'blocked' || access === 'readonly' ? 'warning' : ''}`}
+          role="status"
+        >
+          <CloudOff size={17} />
+          <span>{notice || '친구의 기록을 불러오고 있어요.'}</span>
+        </div>
+      )}
+      <nav className="action-rail" aria-label="돌봄과 전투">
+        <button
+          className={`game-button ${atHome ? 'active' : ''}`}
+          aria-label={atHome ? '집 안 활동' : '집 들어가기'}
+          disabled={!enabled}
           onClick={(e) => {
-            e.preventDefault();
-            changePage('home');
+            if (atHome) changePage('home', e.currentTarget);
+            else {
+              engine.setPlace('home');
+              setPage(null);
+            }
           }}
         >
-          <span className="brand-mark">
-            <PawPrint size={25} fill="currentColor" />
-          </span>
-          <span>
-            모찌펫<small>MOCHIPET RPG</small>
-          </span>
-        </a>
-        <div className="sidebar-label">MY LITTLE WORLD</div>
-        <nav aria-label="메인 메뉴">
-          {navigation.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              className={`nav-item ${page === id ? 'active' : ''}`}
-              aria-current={page === id ? 'page' : undefined}
-              onClick={() => changePage(id)}
-            >
-              <Icon size={19} />
-              <span>{label}</span>
-              {id === 'shop' && <span className="nav-dot" />}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="world-note">
-            <span>🌙</span>
-            <b>더 넓은 세상에서 만나요</b>
-            <p>
-              레벨 20 이후의 온라인 월드를
-              <br />
-              준비하고 있어요.
-            </p>
-            <div>
-              <LockKeyhole size={12} /> 온라인 월드 · 준비 중
-            </div>
-          </div>
-          <button className="quiet help-button" onClick={() => setHelp(true)}>
-            <CircleHelp size={17} /> 처음 오셨나요?
-            <ArrowUpRight size={15} />
-          </button>
-          <small className="version">WEB MVP · PHASE 01</small>
-        </div>
-      </aside>
-      <div className="workspace">
-        <header className="topbar">
-          <div className="breadcrumb">
-            <span>나의 작은 세상</span>
-            <ChevronRight size={14} />
-            <b>{navigation.find((n) => n.id === page)!.label}</b>
-          </div>
-          <div className="topbar-right">
-            <span className="local-badge">
-              <span /> 로컬 모험
-            </span>
-            <div className="coin-wallet" aria-label={`보유 코인 ${p.coins}`}>
-              <Coins size={18} />
-              <b data-testid="coins">{p.coins.toLocaleString()}</b>
-              <span>코인</span>
-            </div>
-            <button
-              className="avatar-button"
-              aria-label="나의 친구 열기"
-              onClick={() => changePage('pet')}
-            >
-              <img src={petAsset(p.characterId)} alt="" />
-            </button>
-          </div>
-        </header>
-        <main id="main-content">
-          <div className="page-heading">
-            <div>
-              <div className="eyebrow">
-                <Sprout size={15} /> LITTLE MOMENTS, BIG ADVENTURES
-              </div>
-              <h1>
-                {page === 'home' ? (
-                  <>
-                    작은 친구와, 포근한 하루<span className="heading-leaf">☘</span>
-                  </>
-                ) : (
-                  navigation.find((n) => n.id === page)!.label
-                )}
-              </h1>
-              <p>
-                {page === 'home'
-                  ? '서두르지 않아도 괜찮아요. 오늘도 모찌와 한 뼘 더 자라요.'
-                  : page === 'shop'
-                    ? '작은 선물 하나로, 친구의 하루를 더 행복하게.'
-                    : page === 'pet'
-                      ? '나만의 속도로 자라나는, 세상에 하나뿐인 친구.'
-                      : page === 'skills'
-                        ? '작은 친구 안에 숨어 있는 반짝이는 힘을 만나 보세요.'
-                        : page === 'journal'
-                          ? '함께 걸어온 모든 순간이 모험이 돼요.'
-                          : '편안하고 안전하게, 우리의 작은 세상을 돌봐요.'}
-              </p>
-            </div>
-            <button
-              className="outline change-friend"
-              onClick={() => setPicker(true)}
-              disabled={!enabled}
-            >
-              <PawPrint size={16} />
-              {p.chosen ? '친구 바꾸기' : '친구 선택하기'}
-            </button>
-          </div>
-          {(notice || access === 'loading') && (
-            <div
-              className={`notice ${access === 'blocked' || access === 'readonly' ? 'warning' : ''}`}
-              role="status"
-            >
-              <CloudOff size={17} />
-              <span>{notice || '친구의 기록을 불러오고 있어요.'}</span>
-            </div>
-          )}
-          <div className="play-layout">
-            <section className="adventure-card" aria-labelledby="adventure-title">
-              <div className="scene-header">
-                <div>
-                  <span className="scene-location">
-                    <MapPin size={14} /> 현재 사냥터
-                  </span>
-                  <h2 id="adventure-title">
-                    {zone.name} <span>Lv.{zone.level}+</span>
-                  </h2>
-                </div>
-                <span className={`activity-badge ${snapshot.hunting ? 'hunting' : ''}`}>
-                  <span />
-                  {snapshot.hunting
-                    ? '모험 중'
-                    : snapshot.action === 'sleep'
-                      ? '쉬는 중'
-                      : '자유 산책'}
-                </span>
-              </div>
-              <div className="scene-wrap">
-                <GameCanvas />
-                <div className="scene-caption">
-                  <Leaf size={13} />
-                  {snapshot.hunting
-                    ? '친구가 스스로 몬스터를 찾아가요'
-                    : snapshot.action === 'sleep'
-                      ? '잠깐의 쉼도 모험의 일부예요'
-                      : '햇살 좋은 날, 마음 가는 대로 걸어요'}
-                </div>
-                {!readyScene && <div className="scene-loading">작은 세상을 불러오는 중…</div>}
-              </div>
-              <div className="scene-controls">
-                <div className="control-description">
-                  <span className="soft-icon">
-                    <Swords size={20} />
-                  </span>
-                  <div>
-                    <b>{snapshot.hunting ? '모험을 즐기고 있어요' : '모험을 떠나 볼까요?'}</b>
-                    <small>
-                      {p.chosen
-                        ? '사냥은 자동으로 진행돼요. HP가 낮으면 쉬어요.'
-                        : '함께할 친구를 선택하면 모험을 시작할 수 있어요.'}
-                    </small>
-                  </div>
-                </div>
-                <button
-                  data-testid="hunt"
-                  className={snapshot.hunting ? 'hunt-button stop' : 'hunt-button'}
-                  disabled={!enabled}
-                  aria-pressed={snapshot.hunting}
-                  onClick={() => {
-                    if (!p.chosen) {
-                      setPicker(true);
-                      return;
-                    }
-                    setFeedback(engine.toggleHunt().message);
-                    saveNow();
-                  }}
-                >
-                  {snapshot.hunting ? (
-                    <Square size={15} fill="currentColor" />
-                  ) : (
-                    <Play size={15} fill="currentColor" />
-                  )}
-                  {p.chosen ? (snapshot.hunting ? '사냥 OFF' : '사냥 ON') : '친구 선택'}
-                </button>
-              </div>
-            </section>
-            <aside className="pet-card" aria-label="펫 상태">
-              <div className="pet-card-title">
-                <h2>나의 작은 친구</h2>
-                <span className="tag">{char.mbti ?? '십이지신'}</span>
-              </div>
-              <div className="pet-identity">
-                <div className="portrait">
-                  <img
-                    src={petAsset(p.characterId, snapshot.action === 'sleep' ? 'sleep' : 'idle')}
-                    alt={char.animal}
-                  />
-                  <span>Lv.{p.level}</span>
-                </div>
-                <div>
-                  <h3>
-                    {p.name}
-                    <span>✦</span>
-                  </h3>
-                  <p>
-                    {char.name} · {p.chosen ? '우리의 모험은 계속돼요' : '새로운 만남을 기다려요'}
-                  </p>
-                  <div className="xp-label">
-                    <b>
-                      {p.level === MAX_LEVEL
-                        ? '싱글 최고 레벨'
-                        : `다음 레벨까지 ${xpForLevel(p.level) - p.xp} XP`}
-                    </b>
-                    <span>{progress}%</span>
-                  </div>
-                  <div className="xp-track">
-                    <i style={{ width: `${progress}%` }} />
-                  </div>
-                </div>
-              </div>
-              <div className="pet-meters">
-                <Meter
-                  label="건강"
-                  value={p.hp}
-                  max={maxHp(p)}
-                  color="#d9a6ad"
-                  icon={<Heart size={14} />}
-                />
-                <Meter
-                  label="배부름"
-                  value={p.hunger}
-                  color="#dfc08b"
-                  icon={<Utensils size={14} />}
-                />
-                <Meter
-                  label="행복"
-                  value={p.happiness}
-                  color="#a6bf9c"
-                  icon={<Sparkles size={14} />}
-                />
-                <Meter label="체력" value={p.energy} color="#a9b9ce" icon={<Zap size={14} />} />
-              </div>
-              <div className="care-buttons">
-                <button
-                  disabled={!enabled}
-                  onClick={() => {
-                    setFeedback(engine.care('pet').message);
-                    saveNow();
-                  }}
-                >
-                  <Heart size={15} />
-                  쓰다듬기
-                </button>
-                <button
-                  disabled={!enabled}
-                  onClick={() => {
-                    setFeedback(engine.care('rest').message);
-                    saveNow();
-                  }}
-                >
-                  <Moon size={15} />
-                  쉬기
-                </button>
-              </div>
-              <div className="save-caption">
-                <CheckCircle2 size={12} />
-                <span>{saveState}</span>
-              </div>
-            </aside>
-          </div>
-          <div className="feedback" role="status" aria-live="polite">
-            {feedback}
-          </div>
-          {page === 'home' && (
-            <>
-              <div className="section-heading">
-                <div>
-                  <h2>오늘은 어디로 갈까요?</h2>
-                  <p>친구가 자라는 만큼, 새로운 길이 열려요.</p>
-                </div>
-                <span className="small-note">사냥터 4곳</span>
-              </div>
-              <div className="zone-grid">
-                {ZONES.map((z, i) => {
-                  const locked = p.level < z.level;
-                  return (
-                    <button
-                      className={`zone-card zone-${i} ${p.zoneId === z.id ? 'selected' : ''}`}
-                      key={z.id}
-                      disabled={!enabled || locked}
-                      onClick={() => {
-                        setFeedback(engine.setZone(z.id).message);
-                        saveNow();
-                      }}
-                      aria-pressed={p.zoneId === z.id}
-                    >
-                      <div className="zone-art">
-                        <span>{z.emoji}</span>
-                        <div className="mini-hill" />
-                        {locked && (
-                          <span className="zone-lock">
-                            <LockKeyhole size={16} />
-                          </span>
-                        )}
-                      </div>
-                      <div className="zone-info">
-                        <span>
-                          <b>{z.name}</b>
-                          <small>Lv.{z.level} 이상</small>
-                        </span>
-                        {p.zoneId === z.id ? (
-                          <span className="zone-selected">
-                            <Check size={13} /> 머무는 중
-                          </span>
-                        ) : (
-                          <ChevronRight size={16} />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="bottom-strip">
-                <div>
-                  <span className="tip-icon">✧</span>
-                  <p>
-                    <b>작은 돌봄이 큰 모험의 시작.</b> 맛있는 음식과 장난감을 선물해 보세요.
-                  </p>
-                </div>
-                <button className="text-button" onClick={() => changePage('shop')}>
-                  상점 둘러보기
-                  <ArrowRight size={15} />
-                </button>
-              </div>
-            </>
-          )}
-          {page === 'shop' && (
-            <section className="content-section">
-              <div className="section-heading">
-                <div>
-                  <h2>친구를 위한 작은 선물</h2>
-                  <p>구매한 음식과 장난감은 바로 사용돼요.</p>
-                </div>
-                <div className="filter-tabs">
-                  {[
-                    ['all', '전체'],
-                    ['food', '음식'],
-                    ['toy', '장난감'],
-                    ['training', '훈련'],
-                    ['skill', '스킬'],
-                  ].map(([id, label]) => (
-                    <button
-                      key={id}
-                      className={shopFilter === id ? 'selected' : ''}
-                      aria-pressed={shopFilter === id}
-                      onClick={() => setShopFilter(id)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="shop-grid">
-                {SHOP.filter((i) => shopFilter === 'all' || i.category === shopFilter).map(
-                  (item) => {
-                    const count = p.purchases[item.id] ?? 0;
-                    const capped = Boolean(item.limit && count >= item.limit);
-                    return (
-                      <article className="shop-item" key={item.id}>
-                        <span className={`item-art ${item.category}`}>{item.icon}</span>
-                        <div>
-                          <h3>{item.name}</h3>
-                          <p>{item.description}</p>
-                          <small>
-                            Lv.{item.level}+{item.limit ? ` · 구매 ${count}/${item.limit}` : ''}
-                          </small>
-                        </div>
-                        <button
-                          className="outline"
-                          disabled={
-                            !enabled || p.coins < item.price || p.level < item.level || capped
-                          }
-                          aria-label={`${item.name} 구매 ${item.price} 코인`}
-                          onClick={() => buy(item.id)}
-                        >
-                          <Coins size={14} />
-                          {capped ? '한도 도달' : item.price}
-                        </button>
-                      </article>
-                    );
-                  },
-                )}
-              </div>
-            </section>
-          )}
-          {page === 'pet' && (
-            <section className="content-section pet-details">
-              <div className="section-heading">
-                <div>
-                  <h2>{p.name}의 이야기</h2>
-                  <p>{char.tagline}</p>
-                </div>
-                <span className="tag">친밀도 {p.bond} / 100</span>
-              </div>
-              <form
-                className="name-form"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setFeedback(engine.rename(draftName).message);
-                  saveNow();
-                }}
-              >
-                <label htmlFor="pet-name">친구의 이름</label>
-                <input
-                  id="pet-name"
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                  maxLength={16}
-                  required
-                  disabled={!enabled}
-                />
-                <button type="submit" className="outline" disabled={!enabled}>
-                  <Pencil size={15} /> 이름 바꾸기
-                </button>
-              </form>
-              <div className="stat-grid">
-                {[
-                  [Swords, '공격력', attack(p)],
-                  [Shield, '방어력', defense(p)],
-                  [Wind, '민첩성', agility(p)],
-                  [Heart, '최대 HP', maxHp(p)],
-                ].map(([Icon, label, value]) => {
-                  const I = Icon as typeof Swords;
-                  return (
-                    <div key={String(label)}>
-                      <I size={20} />
-                      <span>{String(label)}</span>
-                      <b>{String(value)}</b>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="info-block">
-                <Sparkles size={23} />
-                <div>
-                  <h3>나만의 시작 스킬 · {skill.name}</h3>
-                  <p>
-                    {skill.description} 강화 +{p.skillRank} · 재사용 {skill.cooldown}초
-                  </p>
-                </div>
-              </div>
-              <p className="fine-print">
-                이 버전에서는 친구의 외형을 바꿔도 레벨, 코인, 구매한 강화가 이어져요. 고유 기본
-                스킬은 새 친구의 스킬로 바뀌어요.
-              </p>
-            </section>
-          )}
-          {page === 'skills' && (
-            <section className="content-section">
-              <div className="section-heading">
-                <div>
-                  <h2>28개의 반짝임</h2>
-                  <p>선택한 친구의 고유 스킬이 전투 중 자동으로 발동해요.</p>
-                </div>
-                <span className="tag">강화 +{p.skillRank}</span>
-              </div>
-              <div className="skill-grid">
-                {CHARACTERS.map((c) => {
-                  const s = SKILLS.find((s) => s.id === c.skillId)!;
-                  const active = c.id === p.characterId;
-                  return (
-                    <article className={`skill-card ${active ? 'equipped' : ''}`} key={c.id}>
-                      <img loading="lazy" src={petAsset(c.id)} alt="" width="64" height="64" />
-                      <div>
-                        <small>
-                          {c.name}
-                          {active ? ' · 장착 중' : ''}
-                        </small>
-                        <h3>{s.name}</h3>
-                        <p>{s.description}</p>
-                        <span>
-                          위력 {s.power + (active ? p.skillRank * 3 : 0)} · {s.cooldown}초 ·{' '}
-                          {s.effect === 'heal'
-                            ? '회복'
-                            : s.effect === 'poison'
-                              ? '중독'
-                              : s.effect === 'guard'
-                                ? '방어'
-                                : '공격'}
-                        </span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-          {page === 'journal' && (
-            <section className="content-section">
-              <div className="section-heading">
-                <div>
-                  <h2>함께 쌓은 발자국</h2>
-                  <p>작은 성취도 차곡차곡 기억해요.</p>
-                </div>
-              </div>
-              <div className="stat-grid">
-                <div>
-                  <Swords size={21} />
-                  <span>처치한 몬스터</span>
-                  <b data-testid="kills">{p.kills}</b>
-                </div>
-                <div>
-                  <Sprout size={21} />
-                  <span>현재 레벨</span>
-                  <b>{p.level} / 20</b>
-                </div>
-                <div>
-                  <Heart size={21} />
-                  <span>친밀도</span>
-                  <b>{p.bond}</b>
-                </div>
-                <div>
-                  <MapPin size={21} />
-                  <span>열린 사냥터</span>
-                  <b>{ZONES.filter((z) => z.level <= p.level).length} / 4</b>
-                </div>
-              </div>
-              <h3 className="log-heading">이번 접속의 모험 소식</h3>
-              <div className="event-log">
-                {snapshot.events
-                  .filter((e) => !['damage', 'hurt'].includes(e.kind))
-                  .reverse()
-                  .map((e) => (
-                    <div key={e.id}>
-                      <span>✧</span>
-                      {e.message}
-                    </div>
-                  ))}
-                {snapshot.events.length === 0 && (
-                  <p>아직 고요한 아침이에요. 첫 모험을 시작해 볼까요?</p>
-                )}
-              </div>
-            </section>
-          )}
-          {page === 'settings' && (
-            <section className="content-section settings-panel">
-              <h2>기록과 플레이</h2>
-              <p>
-                이 브라우저에 자동 저장해요. 계정 연결과 기기 간 동기화는 다음 단계에서 제공할
-                예정이에요.
-              </p>
-              <div className="setting-row">
-                <div>
-                  <h3>지금 저장하기</h3>
-                  <p>{saveState} · 10초마다, 구매 후, 탭을 떠날 때 저장해요.</p>
-                </div>
-                <button className="outline" disabled={!enabled} onClick={saveNow}>
-                  저장
-                </button>
-              </div>
-              <div className="setting-row">
-                <div>
-                  <h3>기록 내보내기</h3>
-                  <p>현재 기록과 이전 백업을 개인 파일로 보관해요.</p>
-                </div>
-                <button
-                  className="outline"
-                  onClick={() => {
-                    try {
-                      const raw = JSON.stringify(
-                        {
-                          current: localStorage.getItem(SAVE_KEY),
-                          previous: localStorage.getItem(BACKUP_KEY),
-                          beforeReset: localStorage.getItem(RESET_KEY),
-                        },
-                        null,
-                        2,
-                      );
-                      const url = URL.createObjectURL(
-                        new Blob([raw], { type: 'application/json' }),
-                      );
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'mochipet-personal-backup.json';
-                      a.click();
-                      setTimeout(() => URL.revokeObjectURL(url), 1000);
-                    } catch {
-                      setFeedback('기록을 내보내지 못했어요. 저장 권한을 확인해 주세요.');
-                    }
-                  }}
-                >
-                  <Download size={15} />
-                  내보내기
-                </button>
-              </div>
-              <div className="setting-row">
-                <div>
-                  <h3>새로운 모험 시작</h3>
-                  <p>확인 후 현재·이전 저장 원본을 백업하고 초기화해요.</p>
-                </div>
-                <button
-                  className="outline danger"
-                  disabled={access === 'blocked' || access === 'loading'}
-                  onClick={() => setReset(true)}
-                >
-                  초기화
-                </button>
-              </div>
-              <div className="info-block">
-                <Leaf size={24} />
-                <div>
-                  <h3>가볍게, 천천히</h3>
-                  <p>
-                    게임은 30 FPS를 목표로 렌더링해요. 숨겨진 탭에서는 진행을 멈춰요. 탭 종료·자리
-                    비움 보상은 아직 제공하지 않아요.
-                  </p>
-                </div>
-              </div>
-            </section>
-          )}
-          <footer className="footer">
-            <span>
-              <Leaf size={13} /> 오늘도 너의 속도로, 모찌펫
-            </span>
-            <span>
-              기록은 이 브라우저에 보관돼요 <span className="footer-dot">·</span> 오프라인 레벨 최대
-              20
-            </span>
-          </footer>
-        </main>
-      </div>
-      <nav className="mobile-nav" aria-label="모바일 메뉴">
-        {navigation
-          .filter((n) => n.id !== 'settings')
-          .map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              className={page === id ? 'active' : ''}
-              aria-current={page === id ? 'page' : undefined}
-              onClick={() => changePage(id)}
-            >
-              <Icon size={20} />
-              <span>{label}</span>
-            </button>
-          ))}
-        <button aria-label="설정" onClick={() => changePage('settings')}>
-          <Settings size={20} />
-          <span>설정</span>
+          <House size={22} />
+          <span>{atHome ? '집 안 활동' : '우리 집'}</span>
+        </button>
+        <button
+          className={`game-button hunt-button ${snapshot.hunting ? 'stop' : ''}`}
+          data-testid="hunt"
+          disabled={!enabled || Boolean(snapshot.homeActivity)}
+          aria-pressed={snapshot.hunting}
+          onClick={() => {
+            if (!p.chosen) {
+              setPicker(true);
+              return;
+            }
+            setFeedback(engine.toggleHunt().message);
+            setPage(null);
+            saveNow();
+          }}
+        >
+          {snapshot.hunting ? <Square size={22} /> : <Swords size={22} />}
+          <span>{snapshot.hunting ? '사냥 OFF' : '사냥 ON'}</span>
+        </button>
+        <button
+          className="game-button"
+          disabled={!enabled}
+          onClick={() => {
+            setFeedback(engine.care('pet').message);
+            saveNow();
+          }}
+        >
+          <Heart size={22} />
+          <span>쓰다듬기</span>
+        </button>
+        <button
+          className="game-button"
+          disabled={!enabled}
+          onClick={() => {
+            setFeedback(engine.care('rest').message);
+            saveNow();
+          }}
+        >
+          <Moon size={22} />
+          <span>쉬기</span>
         </button>
       </nav>
+      <nav className="menu-rail" aria-label="게임 메뉴">
+        {navigation.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            className={`game-button ${page === id ? 'active' : ''}`}
+            aria-label={label}
+            aria-expanded={page === id}
+            aria-controls="game-panel"
+            onClick={(e) => changePage(id, e.currentTarget)}
+          >
+            <Icon size={22} />
+            <span>
+              {label === '모찌 상점'
+                ? '상점'
+                : label === '나의 친구'
+                  ? '친구'
+                  : label === '스킬 도감'
+                    ? '스킬'
+                    : label === '모험 기록'
+                      ? '기록'
+                      : label}
+            </span>
+          </button>
+        ))}
+      </nav>
+      {atHome && p.chosen && !page && !activity && (
+        <div className="home-dock glass" aria-label="집 안 활동 바로가기">
+          {HOME_ACTIVITIES.map((a) => (
+            <button
+              key={a.id}
+              className={['meal', 'bath', 'sleep'].includes(a.id) ? '' : 'secondary-activity'}
+              disabled={!enabled}
+              aria-label={a.name}
+              onClick={() => doHomeActivity(a.id)}
+            >
+              <span>{a.icon}</span>
+              <small>{a.name}</small>
+            </button>
+          ))}
+          <button
+            className="more-home"
+            aria-label="집 안 활동 더 보기"
+            onClick={(e) => changePage('home', e.currentTarget)}
+          >
+            <Sparkles size={20} />
+            <small>더 보기</small>
+          </button>
+        </div>
+      )}
+      {atHome && !page && p.chosen && (
+        <button
+          className={`yard-return glass ${activity ? 'during-activity' : ''}`}
+          disabled={!enabled}
+          onClick={() => {
+            engine.setPlace('yard');
+            saveNow();
+          }}
+        >
+          <Leaf size={14} />
+          마당으로
+        </button>
+      )}
+      {page !== 'home' && homeProgress}
+      <div className="world-hint" hidden={atHome && p.chosen}>
+        {!p.chosen ? (
+          <button
+            className="primary welcome-button"
+            disabled={!enabled}
+            onClick={() => setPicker(true)}
+          >
+            <PawPrint size={18} />
+            친구 선택하기
+            <ArrowRight size={17} />
+          </button>
+        ) : (
+          <span className="walk-hint">
+            {cameraMode === 'free'
+              ? '맵을 끌어 원하는 곳을 둘러보세요'
+              : snapshot.place === 'yard'
+                ? '우리 집에 들어가 친구를 돌봐 주세요'
+                : '맵 끌어 둘러보기 · 땅 눌러 산책'}
+          </span>
+        )}
+      </div>
+      <div className="game-meta">
+        <span>
+          <CheckCircle2 size={12} />
+          {saveState}
+        </span>
+        {cameraMode === 'free' && (
+          <button
+            className="camera-return glass"
+            aria-label="친구 따라가기"
+            onClick={() =>
+              useGame.setState({
+                cameraMode: 'follow',
+                activityCamera: Boolean(snapshot.homeActivity),
+              })
+            }
+          >
+            <LocateFixed size={16} /> 친구 따라가기
+          </button>
+        )}
+        <button aria-label="도움말" onClick={() => setHelp(true)}>
+          <CircleHelp size={18} />
+        </button>
+      </div>
+      <div className={`feedback ${feedback ? 'visible' : ''}`} role="status" aria-live="polite">
+        {feedback}
+      </div>
+      {page && (
+        <aside
+          className="side-panel glass"
+          id="game-panel"
+          ref={panel}
+          tabIndex={-1}
+          aria-labelledby="panel-title"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.stopPropagation();
+              closePanel();
+            }
+          }}
+        >
+          <div className="panel-heading">
+            <div>
+              <span className="panel-eyebrow">MOCHIPET</span>
+              <h1 id="panel-title">
+                {page === 'home' ? '집 안 활동' : navigation.find((n) => n.id === page)!.label}
+              </h1>
+            </div>
+            <button className="icon-button" aria-label="패널 닫기" onClick={closePanel}>
+              <X size={22} />
+            </button>
+          </div>
+          <div className="panel-content">
+            {page === 'home' && (
+              <section className="home-panel">
+                <p className="muted">
+                  가구를 누르거나 활동을 골라 주세요. 모두 무료로 함께할 수 있어요.
+                </p>
+                <div className="pet-meters home-meters">
+                  <Meter
+                    label="배부름"
+                    value={p.hunger}
+                    color="#dfc08b"
+                    icon={<Utensils size={14} />}
+                  />
+                  <Meter
+                    label="행복"
+                    value={p.happiness}
+                    color="#a6bf9c"
+                    icon={<Heart size={14} />}
+                  />
+                  <Meter label="체력" value={p.energy} color="#a9b9ce" icon={<Zap size={14} />} />
+                  <Meter label="청결" value={p.hygiene} color="#9dc7bf" icon={<Bath size={14} />} />
+                  <Meter
+                    label="화장실 욕구"
+                    value={p.toilet}
+                    color="#d8b78f"
+                    icon={<Toilet size={14} />}
+                  />
+                  <Meter
+                    label="방 상태"
+                    value={p.roomCleanliness}
+                    color="#c4c994"
+                    icon={<Bubbles size={14} />}
+                  />
+                </div>
+                {homeProgress}
+                <div className="home-activity-list">
+                  {HOME_ACTIVITIES.map((a) => (
+                    <button
+                      key={a.id}
+                      aria-label={a.name}
+                      disabled={!enabled || Boolean(activity)}
+                      onClick={() => doHomeActivity(a.id)}
+                    >
+                      <span>{a.icon}</span>
+                      <div>
+                        <b>
+                          {a.name}
+                          <small>{a.seconds}초</small>
+                        </b>
+                        <p>{a.description}</p>
+                        <small>
+                          {a.furniture} · 완료 {p.homeActivities[a.id] ?? 0}회
+                        </small>
+                      </div>
+                      <ChevronRight size={16} />
+                    </button>
+                  ))}
+                </div>
+                <button
+                  className="outline full-width"
+                  disabled={!enabled}
+                  onClick={() => {
+                    engine.setPlace('yard');
+                    closePanel();
+                    saveNow();
+                  }}
+                >
+                  <Leaf size={15} />
+                  마당으로 나가기
+                </button>
+                <p className="fine-print">
+                  활동은 가구에 도착한 뒤 시작해요. 취소·외출·새로고침하면 완료 보상은 받지 않아요.
+                  탭을 숨기면 진행을 멈춰요.
+                </p>
+              </section>
+            )}
+            {page === 'map' && (
+              <>
+                <div className="section-heading">
+                  <div>
+                    <h2>마당 너머로 모험을 떠나요</h2>
+                    <p>친구가 자라는 만큼, 새로운 길이 열려요.</p>
+                  </div>
+                  <span className="small-note">사냥터 4곳</span>
+                </div>
+                <button
+                  className="outline full-width yard-link"
+                  disabled={!enabled}
+                  onClick={() => {
+                    engine.setPlace('yard');
+                    closePanel();
+                  }}
+                >
+                  <House size={16} />집 앞 마당으로
+                </button>
+                <div className="zone-grid">
+                  {ZONES.map((z, i) => {
+                    const locked = p.level < z.level;
+                    return (
+                      <button
+                        className={`zone-card zone-${i} ${p.zoneId === z.id ? 'selected' : ''}`}
+                        key={z.id}
+                        disabled={!enabled || locked}
+                        onClick={() => {
+                          setFeedback(engine.setZone(z.id).message);
+                          saveNow();
+                        }}
+                        aria-pressed={p.zoneId === z.id}
+                      >
+                        <div className="zone-art">
+                          <span>{z.emoji}</span>
+                          <div className="mini-hill" />
+                          {locked && (
+                            <span className="zone-lock">
+                              <LockKeyhole size={16} />
+                            </span>
+                          )}
+                        </div>
+                        <div className="zone-info">
+                          <span>
+                            <b>{z.name}</b>
+                            <small>Lv.{z.level} 이상</small>
+                          </span>
+                          {p.zoneId === z.id ? (
+                            <span className="zone-selected">
+                              <Check size={13} /> 머무는 중
+                            </span>
+                          ) : (
+                            <ChevronRight size={16} />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            {page === 'shop' && (
+              <section className="content-section">
+                <div className="section-heading">
+                  <div>
+                    <h2>친구를 위한 작은 선물</h2>
+                    <p>구매한 음식과 장난감은 바로 사용돼요.</p>
+                  </div>
+                  <div className="filter-tabs">
+                    {[
+                      ['all', '전체'],
+                      ['food', '음식'],
+                      ['toy', '장난감'],
+                      ['training', '훈련'],
+                      ['skill', '스킬'],
+                    ].map(([id, label]) => (
+                      <button
+                        key={id}
+                        className={shopFilter === id ? 'selected' : ''}
+                        aria-pressed={shopFilter === id}
+                        onClick={() => setShopFilter(id)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="shop-grid">
+                  {SHOP.filter((i) => shopFilter === 'all' || i.category === shopFilter).map(
+                    (item) => {
+                      const count = p.purchases[item.id] ?? 0;
+                      const capped = Boolean(item.limit && count >= item.limit);
+                      return (
+                        <article className="shop-item" key={item.id}>
+                          <span className={`item-art ${item.category}`}>{item.icon}</span>
+                          <div>
+                            <h3>{item.name}</h3>
+                            <p>{item.description}</p>
+                            <small>
+                              Lv.{item.level}+{item.limit ? ` · 구매 ${count}/${item.limit}` : ''}
+                            </small>
+                          </div>
+                          <button
+                            className="outline"
+                            disabled={
+                              !enabled || p.coins < item.price || p.level < item.level || capped
+                            }
+                            aria-label={`${item.name} 구매 ${item.price} 코인`}
+                            onClick={() => buy(item.id)}
+                          >
+                            <Coins size={14} />
+                            {capped ? '한도 도달' : item.price}
+                          </button>
+                        </article>
+                      );
+                    },
+                  )}
+                </div>
+              </section>
+            )}
+            {page === 'pet' && (
+              <section className="content-section pet-details">
+                <div className="section-heading">
+                  <div>
+                    <h2>{p.name}의 이야기</h2>
+                    <p>{char.tagline}</p>
+                  </div>
+                  <span className="tag">친밀도 {p.bond} / 100</span>
+                </div>
+                <div className="pet-meters">
+                  <Meter label="청결" value={p.hygiene} color="#9dc7bf" icon={<Bath size={14} />} />
+                  <Meter
+                    label="화장실 욕구"
+                    value={p.toilet}
+                    color="#d8b78f"
+                    icon={<Toilet size={14} />}
+                  />
+                  <Meter
+                    label="건강"
+                    value={p.hp}
+                    max={maxHp(p)}
+                    color="#e6a89b"
+                    icon={<Heart size={14} />}
+                  />
+                  <Meter
+                    label="배부름"
+                    value={p.hunger}
+                    color="#dfc08b"
+                    icon={<Utensils size={14} />}
+                  />
+                  <Meter
+                    label="행복"
+                    value={p.happiness}
+                    color="#a6bf9c"
+                    icon={<Sparkles size={14} />}
+                  />
+                  <Meter label="체력" value={p.energy} color="#a9b9ce" icon={<Zap size={14} />} />
+                </div>
+                <button
+                  className="outline change-friend"
+                  disabled={!enabled}
+                  onClick={() => setPicker(true)}
+                >
+                  <PawPrint size={16} />
+                  {p.chosen ? '친구 바꾸기' : '친구 선택하기'}
+                </button>
+                <form
+                  className="name-form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    setFeedback(engine.rename(draftName).message);
+                    saveNow();
+                  }}
+                >
+                  <label htmlFor="pet-name">친구의 이름</label>
+                  <input
+                    id="pet-name"
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                    maxLength={16}
+                    required
+                    disabled={!enabled}
+                  />
+                  <button type="submit" className="outline" disabled={!enabled}>
+                    <Pencil size={15} /> 이름 바꾸기
+                  </button>
+                </form>
+                <div className="stat-grid">
+                  {[
+                    [Swords, '공격력', attack(p)],
+                    [Shield, '방어력', defense(p)],
+                    [Wind, '민첩성', agility(p)],
+                    [Heart, '최대 HP', maxHp(p)],
+                  ].map(([Icon, label, value]) => {
+                    const I = Icon as typeof Swords;
+                    return (
+                      <div key={String(label)}>
+                        <I size={20} />
+                        <span>{String(label)}</span>
+                        <b>{String(value)}</b>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="info-block">
+                  <Sparkles size={23} />
+                  <div>
+                    <h3>나만의 시작 스킬 · {skill.name}</h3>
+                    <p>
+                      {skill.description} 강화 +{p.skillRank} · 재사용 {skill.cooldown}초
+                    </p>
+                  </div>
+                </div>
+                <p className="fine-print">
+                  이 버전에서는 친구의 외형을 바꿔도 레벨, 코인, 구매한 강화가 이어져요. 고유 기본
+                  스킬은 새 친구의 스킬로 바뀌어요.
+                </p>
+              </section>
+            )}
+            {page === 'skills' && (
+              <section className="content-section">
+                <div className="section-heading">
+                  <div>
+                    <h2>28개의 반짝임</h2>
+                    <p>선택한 친구의 고유 스킬이 전투 중 자동으로 발동해요.</p>
+                  </div>
+                  <span className="tag">강화 +{p.skillRank}</span>
+                </div>
+                <div className="skill-grid">
+                  {CHARACTERS.map((c) => {
+                    const s = SKILLS.find((s) => s.id === c.skillId)!;
+                    const active = c.id === p.characterId;
+                    return (
+                      <article className={`skill-card ${active ? 'equipped' : ''}`} key={c.id}>
+                        <img loading="lazy" src={petAsset(c.id)} alt="" width="64" height="64" />
+                        <div>
+                          <small>
+                            {c.name}
+                            {active ? ' · 장착 중' : ''}
+                          </small>
+                          <h3>{s.name}</h3>
+                          <p>{s.description}</p>
+                          <span>
+                            위력 {s.power + (active ? p.skillRank * 3 : 0)} · {s.cooldown}초 ·{' '}
+                            {s.effect === 'heal'
+                              ? '회복'
+                              : s.effect === 'poison'
+                                ? '중독'
+                                : s.effect === 'guard'
+                                  ? '방어'
+                                  : '공격'}
+                          </span>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+            {page === 'journal' && (
+              <section className="content-section">
+                <div className="section-heading">
+                  <div>
+                    <h2>함께 쌓은 발자국</h2>
+                    <p>작은 성취도 차곡차곡 기억해요.</p>
+                  </div>
+                </div>
+                <div className="stat-grid">
+                  <div>
+                    <Swords size={21} />
+                    <span>처치한 몬스터</span>
+                    <b data-testid="kills">{p.kills}</b>
+                  </div>
+                  <div>
+                    <Sprout size={21} />
+                    <span>현재 레벨</span>
+                    <b>{p.level} / 20</b>
+                  </div>
+                  <div>
+                    <Heart size={21} />
+                    <span>친밀도</span>
+                    <b>{p.bond}</b>
+                  </div>
+                  <div>
+                    <MapPin size={21} />
+                    <span>열린 사냥터</span>
+                    <b>{ZONES.filter((z) => z.level <= p.level).length} / 4</b>
+                  </div>
+                </div>
+                <h3 className="log-heading">이번 접속의 모험 소식</h3>
+                <div className="event-log">
+                  {snapshot.events
+                    .filter((e) => !['damage', 'hurt'].includes(e.kind))
+                    .reverse()
+                    .map((e) => (
+                      <div key={e.id}>
+                        <span>✧</span>
+                        {e.message}
+                      </div>
+                    ))}
+                  {snapshot.events.length === 0 && (
+                    <p>아직 고요한 아침이에요. 첫 모험을 시작해 볼까요?</p>
+                  )}
+                </div>
+              </section>
+            )}
+            {page === 'settings' && (
+              <section className="content-section settings-panel">
+                <h2>기록과 플레이</h2>
+                <p>
+                  이 브라우저에 자동 저장해요. 계정 연결과 기기 간 동기화는 다음 단계에서 제공할
+                  예정이에요.
+                </p>
+                <div className="setting-row">
+                  <div>
+                    <h3>지금 저장하기</h3>
+                    <p>{saveState} · 10초마다, 구매 후, 탭을 떠날 때 저장해요.</p>
+                  </div>
+                  <button className="outline" disabled={!enabled} onClick={saveNow}>
+                    저장
+                  </button>
+                </div>
+                <div className="setting-row">
+                  <div>
+                    <h3>기록 내보내기</h3>
+                    <p>현재 기록과 이전 백업을 개인 파일로 보관해요.</p>
+                  </div>
+                  <button
+                    className="outline"
+                    onClick={() => {
+                      try {
+                        const raw = JSON.stringify(
+                          {
+                            current: localStorage.getItem(SAVE_KEY),
+                            previous: localStorage.getItem(BACKUP_KEY),
+                            beforeReset: localStorage.getItem(RESET_KEY),
+                            beforeHomeUpgrade: localStorage.getItem(HOME_UPGRADE_KEY),
+                          },
+                          null,
+                          2,
+                        );
+                        const url = URL.createObjectURL(
+                          new Blob([raw], { type: 'application/json' }),
+                        );
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'mochipet-personal-backup.json';
+                        a.click();
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+                      } catch {
+                        setFeedback('기록을 내보내지 못했어요. 저장 권한을 확인해 주세요.');
+                      }
+                    }}
+                  >
+                    <Download size={15} />
+                    내보내기
+                  </button>
+                </div>
+                <div className="setting-row">
+                  <div>
+                    <h3>새로운 모험 시작</h3>
+                    <p>확인 후 현재·이전 저장 원본을 백업하고 초기화해요.</p>
+                  </div>
+                  <button
+                    className="outline danger"
+                    disabled={access === 'blocked' || access === 'loading'}
+                    onClick={() => setReset(true)}
+                  >
+                    초기화
+                  </button>
+                </div>
+                <div className="info-block">
+                  <Leaf size={24} />
+                  <div>
+                    <h3>가볍게, 천천히</h3>
+                    <p>
+                      게임은 30 FPS를 목표로 렌더링해요. 숨겨진 탭에서는 진행을 멈춰요. 탭 종료·자리
+                      비움 보상은 아직 제공하지 않아요.
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
+          </div>
+        </aside>
+      )}
       {picker && <CharacterPicker onClose={() => setPicker(false)} />}
       {help && (
         <Modal title="반가워요, 모찌의 세상에!" onClose={() => setHelp(false)}>
@@ -896,6 +1146,11 @@ export default function App() {
               <li>28종 중 마음이 가는 친구를 선택해 주세요.</li>
               <li>사냥 ON을 누르면 친구가 몬스터를 찾아가 싸워요.</li>
               <li>모은 코인으로 음식, 장난감, 훈련을 선물해 주세요.</li>
+              <li>맵의 땅을 누르면 그곳으로 산책해요. 양옆 버튼으로 기능을 열어요.</li>
+              <li>
+                우리 집 버튼이나 마당의 집을 누르면 실내로 들어가요. 가구에서 밥
+                먹기·목욕·화장실·놀이·독서·수면·청소를 함께해요.
+              </li>
               <li>HP가 부족하면 쉬어요. 새로운 레벨에서 사냥터가 열려요.</li>
             </ol>
             <p>
@@ -930,6 +1185,6 @@ export default function App() {
           </div>
         </Modal>
       )}
-    </div>
+    </main>
   );
 }

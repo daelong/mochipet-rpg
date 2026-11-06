@@ -1,5 +1,12 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { CHARACTERS, SKILLS, MONSTERS, SHOP, ZONES } from '../packages/game-data/src/index';
+import {
+  CHARACTERS,
+  SKILLS,
+  MONSTERS,
+  SHOP,
+  ZONES,
+  HOME_ACTIVITIES,
+} from '../packages/game-data/src/index';
 function csv(rows: Record<string, unknown>[]) {
   const keys = Object.keys(rows[0]);
   const cell = (v: unknown) => `"${String(v).replaceAll('"', '""')}"`;
@@ -31,6 +38,10 @@ const catalogs = {
     monster_ids: z.monsters.join(';'),
   })),
   'web-shop.csv': SHOP.map((i) => ({ ...i })),
+  'web-home-activities.csv': HOME_ACTIVITIES.map((a) => ({
+    ...a,
+    effects: JSON.stringify(a.effects),
+  })),
 };
 for (const [name, rows] of Object.entries(catalogs)) {
   const path = new URL(`../docs/catalogs/${name}`, import.meta.url);
@@ -43,5 +54,5 @@ for (const [name, rows] of Object.entries(catalogs)) {
 console.log(
   process.argv.includes('--check')
     ? 'Web catalogs match runtime data.'
-    : 'Wrote 5 read-only web catalogs.',
+    : `Wrote ${Object.keys(catalogs).length} read-only web catalogs.`,
 );

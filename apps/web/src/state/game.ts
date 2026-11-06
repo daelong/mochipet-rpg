@@ -9,6 +9,9 @@ interface GameStore {
   notice: string;
   saveState: string;
   readyScene: boolean;
+  sceneError: string;
+  cameraMode: 'follow' | 'free';
+  activityCamera: boolean;
 }
 const initial = new GameEngine(defaults());
 export const useGame = create<GameStore>(() => ({
@@ -18,6 +21,9 @@ export const useGame = create<GameStore>(() => ({
   notice: '',
   saveState: '기록을 읽는 중',
   readyScene: false,
+  sceneError: '',
+  cameraMode: 'follow',
+  activityCamera: false,
 }));
 let repository: SaveRepository | undefined;
 let ownsLock = false;
@@ -54,8 +60,26 @@ export function resetGame(): boolean {
 let unsubscribe: (() => void) | undefined;
 function installEngine(engine: GameEngine) {
   unsubscribe?.();
-  useGame.setState({ engine, snapshot: engine.snapshot() });
-  unsubscribe = engine.subscribe(() => useGame.setState({ snapshot: engine.snapshot() }));
+  useGame.setState({
+    engine,
+    snapshot: engine.snapshot(),
+    activityCamera: false,
+    cameraMode: 'follow',
+  });
+  unsubscribe = engine.subscribe(() => {
+    const previousSnapshot = useGame.getState().snapshot;
+    const previous = previousSnapshot.pet.homeActivities;
+    const snapshot = engine.snapshot();
+    useGame.setState({
+      snapshot,
+      ...(!snapshot.homeActivity
+        ? { activityCamera: false }
+        : !previousSnapshot.homeActivity
+          ? { activityCamera: true, cameraMode: 'follow' as const }
+          : {}),
+    });
+    if (JSON.stringify(previous) !== JSON.stringify(snapshot.pet.homeActivities)) saveNow();
+  });
 }
 /** Web Locks owns the whole play session, so another tab cannot progress or write. */
 export function startSession(): () => void {

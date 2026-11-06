@@ -1,7 +1,8 @@
-import { defaults, parsePet, type Pet } from '@mochi/shared';
+import { defaults, parsePet, SCHEMA_VERSION, type Pet } from '@mochi/shared';
 export const SAVE_KEY = 'mochipet.web.v1';
 export const BACKUP_KEY = `${SAVE_KEY}.previous`;
 export const RESET_KEY = `${SAVE_KEY}.before-reset`;
+export const HOME_UPGRADE_KEY = `${SAVE_KEY}.before-home-upgrade`;
 const DAMAGED_KEY = `${SAVE_KEY}.damaged`;
 const LIMIT = 65536;
 export interface StoragePort {
@@ -20,7 +21,7 @@ function decode(text: string): Pet {
 function future(text: string) {
   try {
     const raw = JSON.parse(text);
-    return typeof raw?.schema === 'number' && raw.schema > 1;
+    return typeof raw?.schema === 'number' && raw.schema > SCHEMA_VERSION;
   } catch {
     return false;
   }
@@ -88,7 +89,14 @@ export class SaveRepository {
       } catch {
         // Recovery already preserved the damaged primary; keep its good backup.
       }
-      if (valid) this.storage.setItem(BACKUP_KEY, current);
+      if (valid) {
+        if (JSON.parse(current).schema === 1 && this.storage.getItem(HOME_UPGRADE_KEY) === null) {
+          this.storage.setItem(HOME_UPGRADE_KEY, current);
+          if (this.storage.getItem(HOME_UPGRADE_KEY) !== current)
+            throw new Error('Upgrade backup verification failed');
+        }
+        this.storage.setItem(BACKUP_KEY, current);
+      }
     }
     this.storage.setItem(SAVE_KEY, next);
     if (this.storage.getItem(SAVE_KEY) !== next) throw new Error('Save verification failed');
