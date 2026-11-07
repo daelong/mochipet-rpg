@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { HOME_ACTIVITIES, type HomeActivityId } from '@mochi/game-data';
 import { isMapClick } from './mapPan';
+import { DOORS } from '@mochi/shared';
 
 /** Furniture is drawn in the same world coordinates as the pet and its camera. */
 export function drawHomeInterior(
@@ -11,6 +12,7 @@ export function drawHomeInterior(
   onActivity: (id: string) => void,
   onExit: () => void,
   active: HomeActivityId | null = null,
+  doorOpen = false,
 ) {
   g.fillStyle(0xcda777).fillRect(-600, -300, 3000, 1900);
   for (let y = 240; y < 1600; y += 80) {
@@ -123,8 +125,6 @@ export function drawHomeInterior(
     g.lineStyle(6, 0xb89b69).lineBetween(1150, 827, 1119, 914);
     g.fillStyle(0xc7ac73).fillTriangle(1119, 899, 1089, 943, 1138, 951);
   }
-  g.fillStyle(0xa58560).fillRoundedRect(805, 1093, 190, 78, 16);
-  g.fillStyle(0xe4d1a3).fillRoundedRect(823, 1107, 154, 45, 10);
   if (dirty && active !== 'clean')
     for (let i = 0; i < 20; i++)
       g.fillStyle(0x8c7958, 0.4).fillEllipse(410 + ((i * 137) % 960), 430 + ((i * 83) % 580), 8, 4);
@@ -148,8 +148,13 @@ export function drawHomeInterior(
     });
     decorations.add([label, hit]);
   }
-  const exitLabel = scene.add.text(900, 1140, '마당으로 나가기 ↘', labelStyle).setOrigin(0.5);
-  const exit = scene.add.zone(900, 1130, 200, 100).setInteractive({ useHandCursor: true });
+  const doorX = DOORS.homeExit.threshold.x;
+  g.fillStyle(0x806047).fillRoundedRect(doorX - 100, 1080, 200, 108, 8);
+  g.fillStyle(doorOpen ? 0x66855c : 0xa9855b).fillRoundedRect(doorX - 86, 1090, 172, 86, 5);
+  if (!doorOpen) g.lineStyle(3, 0x806047).lineBetween(doorX, 1090, doorX, 1176);
+  g.fillStyle(0xd6c096).fillRoundedRect(doorX - 96, 1175, 192, 14, 3);
+  const exitLabel = scene.add.text(doorX, 1210, '마당으로 나가기 ↓', labelStyle).setOrigin(0.5);
+  const exit = scene.add.zone(doorX, 1130, 200, 140).setInteractive({ useHandCursor: true });
   exit.on('pointerup', (pointer: Phaser.Input.Pointer) => {
     if (isMapClick(scene, pointer)) onExit();
   });

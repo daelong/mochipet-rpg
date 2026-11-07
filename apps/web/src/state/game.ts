@@ -74,6 +74,7 @@ function installEngine(engine: GameEngine) {
     const snapshot = engine.snapshot();
     useGame.setState({
       snapshot,
+      ...(snapshot.travel && !previousSnapshot.travel ? { cameraMode: 'follow' as const } : {}),
       ...(!snapshot.homeActivity
         ? { activityCamera: false }
         : !previousSnapshot.homeActivity

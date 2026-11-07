@@ -508,6 +508,7 @@ test('home furniture responds to the canvas and care controls fit small screens'
   await page.goto('/');
   await expect(page.locator('.scene-loading')).not.toBeVisible();
   await page.getByRole('button', { name: '집 들어가기', exact: true }).click();
+  await expect(page.locator('main')).toHaveAttribute('data-place', 'home', { timeout: 10000 });
   await page.waitForTimeout(400); // Let the 250 ms room fade and camera settle.
   // The visible bathtub in the desktop room overview, away from the pet and HUD.
   if (isMobile) await page.touchscreen.tap(970, 355);

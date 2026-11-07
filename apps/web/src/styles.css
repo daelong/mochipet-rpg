@@ -1919,3 +1919,201 @@ small {
 #root[data-mini-window='true'] .scene-loading {
   z-index: 7;
 }
+
+.combat-controls {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 70px;
+  transform: translateX(-50%);
+  width: min(450px, calc(100% - 200px));
+  padding: 12px;
+  border-radius: 18px;
+}
+.combat-target,
+.combat-skill-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.combat-target {
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.combat-target > div {
+  min-width: 0;
+}
+.combat-target small,
+.combat-target b,
+.cast-skill small,
+.cast-skill b {
+  display: block;
+}
+.combat-target small {
+  font-size: 10px;
+  color: #d4dfb4;
+  margin-bottom: 4px;
+}
+.combat-target b {
+  font-size: 12px;
+}
+.combat-target .outline {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 6px 9px;
+  font-size: 10px;
+}
+.cast-skill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: #e7d898;
+  color: #344a35;
+  text-align: left;
+}
+.cast-skill b {
+  font-size: 13px;
+}
+.cast-skill small {
+  font-size: 10px;
+  margin-top: 4px;
+}
+.auto-skill-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.auto-skill-option input {
+  width: 17px;
+  height: 17px;
+  accent-color: #d4e3a6;
+}
+.game-shell[data-place='adventure'] .world-hint {
+  display: none;
+}
+.game-shell[data-place='adventure'] .yard-return {
+  bottom: 220px;
+}
+@media (max-width: 600px) {
+  .combat-controls {
+    width: calc(100% - 32px);
+    bottom: 66px;
+  }
+}
+#root[data-mini-window='true'] .combat-controls {
+  width: calc(100% - 24px);
+  bottom: 94px;
+}
+#root[data-mini-window='true'] [data-place='adventure'] .yard-return {
+  bottom: 242px;
+}
+#root[data-mini-window='true'] [data-place='adventure'] .game-meta {
+  bottom: 286px;
+}
+@media (max-width: 600px) and (max-height: 700px) {
+  #root:not([data-mini-window='true']) [data-place='adventure'] .menu-rail {
+    top: 150px;
+    bottom: auto;
+    gap: 3px;
+    justify-content: flex-start;
+  }
+  #root:not([data-mini-window='true']) [data-place='adventure'] .menu-rail .game-button {
+    height: 44px;
+    min-height: 44px;
+    gap: 3px;
+  }
+  #root:not([data-mini-window='true']) [data-place='adventure'] .combat-controls {
+    bottom: 12px;
+    padding: 10px;
+  }
+  #root:not([data-mini-window='true']) [data-place='adventure'] .combat-target {
+    margin-bottom: 8px;
+  }
+  #root:not([data-mini-window='true']) [data-place='adventure'] .yard-return {
+    bottom: 152px;
+  }
+  #root:not([data-mini-window='true']) [data-place='adventure'] .game-meta {
+    top: 114px;
+    bottom: auto;
+    left: 16px;
+    right: 16px;
+  }
+  #root:not([data-mini-window='true']) [data-place='adventure'] .game-meta > span {
+    display: none;
+  }
+  #root:not([data-mini-window='true'])
+    [data-place='adventure']
+    .game-meta
+    > button:not(.camera-return) {
+    width: 32px;
+    height: 32px;
+  }
+  #root:not([data-mini-window='true']) [data-place='adventure'] .camera-return {
+    position: fixed;
+    bottom: 190px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+.door-travel {
+  position: fixed;
+  z-index: 12;
+  bottom: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(410px, calc(100% - 200px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+}
+.door-travel span {
+  flex: 1;
+  min-width: 0;
+}
+.door-travel b,
+.door-travel small {
+  display: block;
+}
+.door-travel small {
+  margin-top: 4px;
+  font-size: 11px;
+}
+.door-travel button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .door-travel {
+    width: calc(100% - 24px);
+    bottom: 16px;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+}
+#root[data-mini-window='true'] .door-travel {
+  width: calc(100% - 24px);
+  bottom: 94px;
+}
+
+.game-shell[data-travelling='true'][data-place='yard'] .feedback {
+  bottom: 160px;
+}
+@media (max-width: 600px) {
+  .game-shell[data-travelling='true'][data-place='yard'] .feedback {
+    bottom: 110px;
+  }
+}
+#root[data-mini-window='true'] .game-shell[data-travelling='true'] .feedback {
+  top: auto;
+  bottom: 190px;
+}

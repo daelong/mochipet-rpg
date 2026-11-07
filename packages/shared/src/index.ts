@@ -1,5 +1,15 @@
 import { z } from 'zod';
 import { nearestEnemy, spawnPosition, type Point } from './hunting';
+import {
+  DOORS,
+  doorTravel,
+  travelPoint,
+  type DoorTravel,
+  type DoorArrival,
+  type TravelDestination,
+} from './travel';
+export { DOORS, travelPoint } from './travel';
+export type { DoorTravel, DoorArrival, TravelDestination } from './travel';
 export { nearestEnemy, spawnPosition } from './hunting';
 import {
   CHARACTERS,
@@ -150,6 +160,9 @@ export interface GameEvent {
 export interface Snapshot {
   pet: Pet;
   hunting: boolean;
+  manualCombat: boolean;
+  autoSkill: boolean;
+  skillQueued: boolean;
   action: Action;
   enemy: Enemy | null;
   enemies: Enemy[];
@@ -160,6 +173,8 @@ export interface Snapshot {
   paused: boolean;
   place: Place;
   homeActivity: HomeActivityState | null;
+  travel: DoorTravel | null;
+  petting: boolean;
 }
 export type Place = 'yard' | 'home' | 'adventure';
 export interface HomeActivityState {
@@ -172,6 +187,12 @@ export type Result = { ok: true; message: string } | { ok: false; message: strin
 export class GameEngine {
   pet: Pet;
   hunting = false;
+  manualCombat = false;
+  autoSkill = true;
+  private queuedSkillUid: number | null = null;
+  get inCombat(): boolean {
+    return this.hunting || this.manualCombat;
+  }
   action: Action = 'idle';
   enemies: Enemy[] = [];
   targetUid: number | null = null;
@@ -185,6 +206,9 @@ export class GameEngine {
   skillCooldown = 0;
   place: Place = 'yard';
   homeActivity: HomeActivityState | null = null;
+  travel: DoorTravel | null = null;
+  petReaction = 0;
+  private pettingCooldown = 0;
   private attackCooldown = 0;
   private spawnCooldown = 0.5;
   private decay = 0;
@@ -211,6 +235,9 @@ export class GameEngine {
   snapshot = (): Snapshot => ({
     pet: structuredClone(this.pet),
     hunting: this.hunting,
+    manualCombat: this.manualCombat,
+    autoSkill: this.autoSkill,
+    skillQueued: this.queuedSkillUid !== null,
     action: this.action,
     enemy: this.enemy ? { ...this.enemy } : null,
     enemies: this.enemies.map((e) => ({ ...e })),
@@ -221,6 +248,8 @@ export class GameEngine {
     paused: this.paused,
     place: this.place,
     homeActivity: this.homeActivity ? { ...this.homeActivity } : null,
+    travel: this.travel ? { ...this.travel } : null,
+    petting: this.petReaction > 0,
   });
   private emit() {
     this.changed = false;
@@ -260,6 +289,8 @@ export class GameEngine {
     this.pet.hp = first ? maxHp(this.pet) : Math.floor(maxHp(this.pet) * ratio);
     this.stopHunt();
     this.homeActivity = null;
+    this.travel = null;
+    this.petReaction = 0;
     this.event('notice', `${c.animal} 친구와 모험을 시작해요!`);
     this.emit();
     return { ok: true, message: '친구를 선택했어요.' };
@@ -277,14 +308,15 @@ export class GameEngine {
       return this.notice('아직 입장할 수 없는 사냥터예요.', false);
     if (!this.pet.chosen) return this.notice('먼저 함께할 친구를 선택해 주세요.', false);
     if (this.homeActivity) return this.notice('집에서 하던 활동을 마치거나 취소해 주세요.', false);
+    this.travel = null;
     if (this.place === 'adventure' && this.pet.zoneId === z.id)
-      return this.notice(`이미 ${z.name}에 있어요. 자동사냥을 켜 보세요.`);
+      return this.notice(`이미 ${z.name}에 있어요. 몬스터를 누르거나 자동사냥을 켜 보세요.`);
     this.stopHunt();
     this.clearEnemies();
     this.place = 'adventure';
     this.pet.zoneId = z.id;
     this.fillEnemies();
-    return this.notice(`${z.name} 입장! 자동사냥을 켜면 가까운 몬스터를 찾아가요.`);
+    return this.notice(`${z.name} 입장! 몬스터를 누르면 직접 사냥할 수 있어요.`);
   }
   private clearEnemies() {
     this.enemies = [];
@@ -320,6 +352,8 @@ export class GameEngine {
   }
   stopHunt() {
     this.hunting = false;
+    this.manualCombat = false;
+    this.queuedSkillUid = null;
     this.autoResting = false;
     this.targetUid = null;
     this.action = 'idle';
@@ -331,6 +365,8 @@ export class GameEngine {
     }
   }
   toggleHunt(): Result {
+    if (this.travel)
+      return this.notice('문으로 이동 중이에요. 이동을 취소한 뒤 사냥해 주세요.', false);
     if (this.hunting) {
       this.stopHunt();
       return this.notice('자동사냥을 멈췄어요. 사냥터를 자유롭게 둘러보세요.');
@@ -340,6 +376,8 @@ export class GameEngine {
     if (this.place !== 'adventure')
       return this.notice('사냥터를 선택해 입장한 뒤 자동사냥을 켜 주세요.', false);
     this.hunting = true;
+    this.manualCombat = false;
+    this.queuedSkillUid = null;
     this.actionClock = 0;
     this.action = 'walk';
     this.attackCooldown = 0.2;
@@ -358,6 +396,58 @@ export class GameEngine {
     this.targetUid = nearestEnemy(this.enemies, origin)?.uid ?? null;
     this.changed = true;
   }
+  attackEnemy(uid: number): Result {
+    if (
+      this.paused ||
+      !this.pet.chosen ||
+      this.place !== 'adventure' ||
+      this.homeActivity ||
+      this.travel
+    )
+      return this.notice('친구와 사냥터에 입장한 뒤 몬스터를 눌러 주세요.', false);
+    const target = this.enemies.find((enemy) => enemy.uid === uid && enemy.hp > 0);
+    if (!target) return this.notice('그 몬스터는 이미 사라졌어요. 다른 대상을 골라 주세요.', false);
+    if (this.pet.hp <= Math.floor(maxHp(this.pet) * 0.25) || this.pet.energy < 5)
+      return this.notice('HP나 체력이 부족해요. 먼저 쉬고 다시 공격해 주세요.', false);
+    if (this.manualCombat && this.targetUid === uid)
+      return this.notice('선택한 몬스터를 공격하고 있어요.');
+    this.hunting = false;
+    this.autoResting = false;
+    this.manualCombat = true;
+    this.targetUid = uid;
+    this.queuedSkillUid = null;
+    this.actionClock = 0;
+    this.action = 'walk';
+    return this.notice(`${monsterById(target.id).name}에게 이동해 공격해요. 처치하면 멈춰요.`);
+  }
+  cancelAttack(): Result {
+    this.stopHunt();
+    return this.notice('공격을 멈췄어요.');
+  }
+  setAutoSkill(value: boolean) {
+    this.autoSkill = value;
+    this.emit();
+  }
+  requestSkill(): Result {
+    if (
+      this.paused ||
+      !this.pet.chosen ||
+      this.place !== 'adventure' ||
+      !this.inCombat ||
+      this.autoResting ||
+      !this.enemy
+    )
+      return this.notice('공격할 몬스터를 먼저 골라 주세요.', false);
+    if (this.skillCooldown > 0)
+      return this.notice(
+        `스킬을 다시 쓰려면 ${Math.ceil(this.skillCooldown)}초 기다려 주세요.`,
+        false,
+      );
+    if (this.queuedSkillUid !== null)
+      return this.notice('선택한 대상에게 스킬을 준비하고 있어요.', false);
+    this.queuedSkillUid = this.enemy.uid;
+    return this.notice('스킬 준비! 대상이 공격 범위에 들어오면 사용해요.');
+  }
   pause(value: boolean) {
     this.paused = value;
     this.emit();
@@ -366,18 +456,18 @@ export class GameEngine {
     if (this.homeActivity) return this.notice('지금 하던 활동을 마친 뒤 함께해요.', false);
     if (kind === 'rest' && this.place === 'home') return this.startHomeActivity('sleep');
     if (kind === 'rest') {
+      this.travel = null;
       this.stopHunt();
       this.action = 'sleep';
       this.actionClock = 15;
       return this.notice('포근한 낮잠 시간. 쉬는 동안 HP와 체력이 회복돼요.');
     }
-    if (this.actionClock > 0)
-      return this.notice('친구가 하던 행동을 마칠 때까지 기다려 주세요.', false);
+    if (this.pettingCooldown > 0) return this.notice('조금 뒤에 다시 쓰다듬어 주세요.', false);
     this.pet.happiness = Math.min(100, this.pet.happiness + 3);
     this.pet.bond = Math.min(100, this.pet.bond + 1);
-    this.action = 'happy';
-    this.actionClock = 5;
-    this.event('care', '쓰다듬어 주니 기분이 좋아요!');
+    this.pettingCooldown = 5;
+    this.petReaction = 1.8;
+    this.event('care', '♥');
     this.emit();
     return { ok: true, message: '마음이 가까워졌어요.' };
   }
@@ -426,7 +516,7 @@ export class GameEngine {
         p.skillRank += item.amount;
         break;
     }
-    if (!this.hunting && !this.homeActivity) {
+    if (!this.inCombat && !this.homeActivity) {
       this.action = item.category === 'toy' ? 'play' : item.category === 'food' ? 'eat' : 'happy';
       this.actionClock = 3;
     }
@@ -438,6 +528,7 @@ export class GameEngine {
     if (!['yard', 'home', 'adventure'].includes(place))
       return this.notice('갈 수 없는 곳이에요.', false);
     this.homeActivity = null;
+    this.travel = null;
     this.actionClock = 0;
     if (place === 'adventure') return this.setZone(this.pet.zoneId);
     this.stopHunt();
@@ -451,11 +542,53 @@ export class GameEngine {
           : '사냥터로 산책을 나왔어요.',
     );
   }
+  requestTravel(destination: TravelDestination): Result {
+    if (this.paused || !this.pet.chosen || !['home', 'yard'].includes(destination))
+      return this.notice('친구를 선택하고 플레이 중에 이동해 주세요.', false);
+    if (this.travel?.destination === destination)
+      return { ok: true, message: '문으로 가고 있어요.' };
+    const route = doorTravel(this.place, destination);
+    if (!route) return this.notice('이미 도착해 있어요.', false);
+    this.stopHunt();
+    this.homeActivity = null;
+    this.actionClock = 0;
+    this.action = 'walk';
+    this.travel = route;
+    return this.notice(
+      destination === 'home' ? '집 문까지 걸어가요.' : '출입문을 통해 마당으로 가요.',
+    );
+  }
+  cancelTravel(): Result {
+    this.travel = null;
+    this.action = 'idle';
+    return this.notice('문으로 가는 걸 멈췄어요.');
+  }
+  advanceTravel(position: Point): DoorArrival | null {
+    if (!this.travel || this.paused || !this.pet.chosen) return null;
+    const point = travelPoint(this.travel);
+    if (
+      !Number.isFinite(position.x) ||
+      !Number.isFinite(position.y) ||
+      Math.hypot(position.x - point.x, position.y - point.y) > 4
+    )
+      return null;
+    if (this.travel.stage === 'approach') {
+      this.travel.stage = 'cross';
+      this.emit();
+      return null;
+    }
+    const { destination, door } = this.travel;
+    const arrival = { destination, position: { ...DOORS[door].arrival } };
+    this.setPlace(destination);
+    return arrival;
+  }
   startHomeActivity(id: string): Result {
     const activity = homeActivityById(id);
     if (!activity || this.place !== 'home' || !this.pet.chosen)
       return this.notice('친구를 선택하고 집 안에서 활동해 주세요.', false);
     if (this.homeActivity) return this.notice('지금 하던 활동을 마치거나 취소해 주세요.', false);
+    if (this.travel)
+      return this.notice('문으로 이동 중이에요. 이동을 취소한 뒤 활동해 주세요.', false);
     if (id === 'meal' && this.pet.hunger >= 95) return this.notice('지금은 배가 불러요.', false);
     if (id === 'bath' && this.pet.hygiene >= 95) return this.notice('아직 뽀송뽀송해요.', false);
     if (id === 'toilet' && this.pet.toilet <= 10)
@@ -515,6 +648,11 @@ export class GameEngine {
     if (this.paused || !this.pet.chosen) return;
     const dt = Math.min(0.1, Math.max(0, seconds));
     if (!Number.isFinite(dt) || dt === 0) return;
+    this.pettingCooldown = Math.max(0, this.pettingCooldown - dt);
+    if (this.petReaction > 0) {
+      this.petReaction = Math.max(0, this.petReaction - dt);
+      if (this.petReaction === 0) this.changed = true;
+    }
     this.publishClock += dt;
     if (this.homeActivity?.started) {
       this.homeActivity.remaining = Math.max(0, this.homeActivity.remaining - dt);
@@ -538,7 +676,7 @@ export class GameEngine {
         this.pet.roomCleanliness = Math.max(0, this.pet.roomCleanliness - 1);
       if (this.pet.hygiene <= 30 || this.pet.roomCleanliness <= 30 || this.pet.toilet >= 80)
         this.pet.happiness = Math.max(0, this.pet.happiness - 1);
-      if (this.hunting && !this.autoResting) this.pet.energy = Math.max(0, this.pet.energy - 2);
+      if (this.inCombat && !this.autoResting) this.pet.energy = Math.max(0, this.pet.energy - 2);
       this.changed = true;
     }
     if (this.place === 'adventure' && this.enemies.length < HUNTING_RULES.maxMonsters) {
@@ -549,17 +687,27 @@ export class GameEngine {
       }
     }
     if (
-      this.hunting &&
+      this.inCombat &&
       !this.autoResting &&
       (this.pet.hp <= Math.floor(maxHp(this.pet) * 0.25) || this.pet.energy < 5)
     ) {
-      this.autoResting = true;
-      this.targetUid = null;
+      if (this.hunting) {
+        this.autoResting = true;
+        this.targetUid = null;
+        this.queuedSkillUid = null;
+        this.event('notice', 'HP나 체력이 부족해요. 쉬고 난 뒤 자동으로 사냥을 이어가요.');
+      } else {
+        this.stopHunt();
+        this.actionClock = 15;
+        this.event(
+          'notice',
+          'HP나 체력이 부족해 수동 공격을 멈췄어요. 회복 후 다시 대상을 골라 주세요.',
+        );
+      }
       this.action = 'sleep';
       this.healClock = 0;
-      this.event('notice', 'HP나 체력이 부족해요. 쉬고 난 뒤 자동으로 사냥을 이어가요.');
     }
-    if (!this.hunting || this.autoResting) {
+    if (!this.inCombat || this.autoResting) {
       if (this.homeActivity) this.healClock = 0;
       if (!this.homeActivity && this.healClock >= 2) {
         this.healClock = 0;
@@ -590,7 +738,7 @@ export class GameEngine {
       this.healClock = 0;
       this.attackCooldown -= dt;
       // The scene supplies the exact instance it measured. A kill cannot redirect a stale range check.
-      if (typeof engagement === 'boolean' && !this.enemy)
+      if (this.hunting && typeof engagement === 'boolean' && !this.enemy)
         this.targetUid = this.enemies[0]?.uid ?? null;
       const measuredUid = typeof engagement === 'boolean' ? this.targetUid : engagement.uid;
       const inRange = typeof engagement === 'boolean' ? engagement : engagement.inRange;
@@ -605,30 +753,21 @@ export class GameEngine {
         }
       }
       const target = this.enemy;
-      this.action = target && inRange && measuredUid === target.uid ? 'attack' : 'walk';
+      this.action =
+        target && inRange && measuredUid === target.uid
+          ? 'attack'
+          : this.inCombat
+            ? 'walk'
+            : 'happy';
       if (target && inRange && measuredUid === target.uid) {
-        if (this.attackCooldown <= 0) {
+        // A manual request uses the next measured frame and remains bound to this instance.
+        if (this.queuedSkillUid === target.uid && this.skillCooldown <= 0) this.castSkill(target);
+        if (this.enemy === target && this.attackCooldown <= 0) {
           this.attackCooldown = Math.max(0.45, 1.15 - agility(this.pet) * 0.025);
           this.hit(target, attack(this.pet), '공격');
         }
-        if (this.enemy === target && this.skillCooldown <= 0) {
-          const skill = skillById(characterById(this.pet.characterId)!.skillId)!;
-          this.skillCooldown = skill.cooldown;
-          const power = skill.power + this.pet.skillRank * 3;
-          this.event('skill', skill.name, undefined, 'pet');
-          if (skill.effect === 'heal') {
-            const amount = Math.min(maxHp(this.pet) - this.pet.hp, power);
-            this.pet.hp += amount;
-            this.event('care', `HP +${amount}`, amount, 'pet');
-          } else {
-            if (skill.effect === 'poison') {
-              target.poisonTicks = 3;
-              this.enemyTimers.get(target.uid)!.poison = 0;
-            }
-            if (skill.effect === 'guard') this.guard = 3;
-            this.hit(target, power, skill.name);
-          }
-        }
+        if (this.enemy === target && this.hunting && this.autoSkill && this.skillCooldown <= 0)
+          this.castSkill(target);
         if (this.enemy === target && this.enemyTimers.get(target.uid)!.attack <= 0) {
           this.enemyTimers.get(target.uid)!.attack = 1.6;
           const damage = Math.max(
@@ -645,6 +784,25 @@ export class GameEngine {
       this.emit();
     }
   }
+  private castSkill(target: Enemy) {
+    const skill = skillById(characterById(this.pet.characterId)!.skillId)!;
+    this.queuedSkillUid = null;
+    this.skillCooldown = skill.cooldown;
+    const power = skill.power + this.pet.skillRank * 3;
+    this.event('skill', skill.name, undefined, 'pet');
+    if (skill.effect === 'heal') {
+      const amount = Math.min(maxHp(this.pet) - this.pet.hp, power);
+      this.pet.hp += amount;
+      this.event('care', `HP +${amount}`, amount, 'pet');
+    } else {
+      if (skill.effect === 'poison') {
+        target.poisonTicks = 3;
+        this.enemyTimers.get(target.uid)!.poison = 0;
+      }
+      if (skill.effect === 'guard') this.guard = 3;
+      this.hit(target, power, skill.name);
+    }
+  }
   private hit(enemy: Enemy, amount: number, label: string) {
     if (!this.enemies.includes(enemy) || enemy.hp <= 0) return;
     enemy.hp = Math.max(0, enemy.hp - amount);
@@ -654,7 +812,11 @@ export class GameEngine {
       const wasFull = this.enemies.length === HUNTING_RULES.maxMonsters;
       this.enemies = this.enemies.filter((e) => e.uid !== enemy.uid);
       this.enemyTimers.delete(enemy.uid);
-      if (this.targetUid === enemy.uid) this.targetUid = null;
+      if (this.targetUid === enemy.uid) {
+        if (this.manualCombat) this.stopHunt();
+        else this.targetUid = null;
+        this.queuedSkillUid = null;
+      }
       if (wasFull) this.spawnCooldown = HUNTING_RULES.respawnSeconds;
       this.action = 'happy';
     }

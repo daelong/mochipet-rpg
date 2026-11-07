@@ -12,8 +12,12 @@ export function GameCanvas() {
   const enemy = useGame((s) => s.snapshot.enemy);
   const enemies = useGame((s) => s.snapshot.enemies);
   const resting = useGame((s) => s.snapshot.autoResting);
+  const manualCombat = useGame((s) => s.snapshot.manualCombat);
+  const skillQueued = useGame((s) => s.snapshot.skillQueued);
   const place = useGame((s) => s.snapshot.place);
   const activity = useGame((s) => s.snapshot.homeActivity);
+  const travel = useGame((s) => s.snapshot.travel);
+  const petting = useGame((s) => s.snapshot.petting);
   const meal =
     activity?.id === 'meal' && activity.started
       ? mealMotion(homeActivityById('meal')!.seconds - activity.remaining)
@@ -28,7 +32,7 @@ export function GameCanvas() {
       ? '집 안에서 가구를 이용해 펫을 돌보는 게임 화면.'
       : place === 'yard'
         ? '집 앞 마당에서 펫이 산책하는 게임 화면.'
-        : `사냥터 몬스터 ${enemies.length}마리. ${resting ? '자동 회복 중이며 회복 후 사냥을 재개해요.' : '자동사냥을 켜거나 자유롭게 둘러볼 수 있어요.'}`;
+        : `사냥터 몬스터 ${enemies.length}마리. ${resting ? '자동 회복 중이며 회복 후 사냥을 재개해요.' : '몬스터를 눌러 직접 사냥하거나 자동사냥을 켤 수 있어요.'}`;
   useEffect(() => {
     if (access === 'loading') return;
     let closed = false;
@@ -92,7 +96,12 @@ export function GameCanvas() {
       )}
       data-target-uid={enemy?.uid ?? ''}
       data-auto-resting={resting}
+      data-manual-combat={manualCombat}
+      data-skill-queued={skillQueued}
       data-camera-mode={cameraMode}
+      data-travel-destination={travel?.destination ?? ''}
+      data-travel-stage={travel?.stage ?? ''}
+      data-petting={petting}
     ></div>
   );
 }

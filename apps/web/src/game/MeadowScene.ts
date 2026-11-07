@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { HUNTING_RULES, petAsset, homeActivityById } from '@mochi/game-data';
-import { maxHp, type GameEngine } from '@mochi/shared';
+import { maxHp, travelPoint, type DoorArrival, type GameEngine } from '@mochi/shared';
 import { useGame } from '../state/game';
 import { MonsterField } from './MonsterField';
 import { isPlayVisible } from '../pip/playSurface';
@@ -11,6 +11,7 @@ import { mealMotion } from './mealMotion';
 import { CareAnimation } from './CareAnimation';
 import { careMotion } from './careMotion';
 import { PAN_THRESHOLD, panMap, isMapClick, type PanOrigin } from './mapPan';
+import { petFacing, type PetFacing } from './petFacing';
 
 const W = 1800,
   H = 1300;
@@ -32,6 +33,7 @@ export class MeadowScene extends Phaser.Scene {
   private age = 0;
   private wander = 0;
   private manual = false;
+  private facing: PetFacing = 'left';
   private lastEvent = 0;
   private currentCharacter = '';
   private currentZone = '';
@@ -40,6 +42,9 @@ export class MeadowScene extends Phaser.Scene {
   private lastEngine: GameEngine | null = null;
   private loadingId = '';
   private effects: Phaser.GameObjects.Text[] = [];
+  private hearts: Phaser.GameObjects.Text[] = [];
+  private doorArrival: DoorArrival | null = null;
+  private wasTravelling = false;
   constructor() {
     super('meadow');
   }
@@ -132,6 +137,8 @@ export class MeadowScene extends Phaser.Scene {
           over.length > 0
         )
           return;
+        if (engine.manualCombat) engine.cancelAttack();
+        if (engine.travel) engine.cancelTravel();
         this.target.set(
           Phaser.Math.Clamp(pointer.worldX, 400, 1380),
           Phaser.Math.Clamp(pointer.worldY, engine.place === 'home' ? 430 : 390, 1040),
@@ -140,7 +147,14 @@ export class MeadowScene extends Phaser.Scene {
         this.destination.setPosition(this.target.x, this.target.y).setVisible(true);
       },
     );
-    this.monsters = new MonsterField(this);
+    this.monsters = new MonsterField(this, (uid) => {
+      const { engine, access } = useGame.getState();
+      if (access !== 'ready') return;
+      if (engine.attackEnemy(uid).ok) {
+        this.manual = false;
+        this.wander = 4;
+      }
+    });
     const textStyle = {
       fontFamily: 'system-ui',
       color: '#fff6dd',
@@ -152,6 +166,18 @@ export class MeadowScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(3000);
     this.bars = this.add.graphics().setDepth(3000);
+    this.hearts = [-1, 0, 1].map(() =>
+      this.add
+        .text(0, 0, '♥', {
+          fontSize: '23px',
+          color: '#ffb3ce',
+          stroke: '#86536a',
+          strokeThickness: 2,
+        })
+        .setOrigin(0.5)
+        .setDepth(3001)
+        .setVisible(false),
+    );
     this.mealAnimation = new MealAnimation(this);
     this.careAnimation = new CareAnimation(this);
     this.cameras.main.setBounds(0, 0, W, H);
@@ -171,6 +197,7 @@ export class MeadowScene extends Phaser.Scene {
     const host = this.game.canvas.parentElement;
     host?.setAttribute('data-camera-x', this.cameras.main.scrollX.toFixed(2));
     host?.setAttribute('data-camera-y', this.cameras.main.scrollY.toFixed(2));
+    host?.setAttribute('data-camera-zoom', this.cameras.main.zoom.toFixed(4));
   }
   private mapBounds() {
     return useGame.getState().engine.place === 'home'
@@ -217,14 +244,22 @@ export class MeadowScene extends Phaser.Scene {
     }
     const active =
       engine.place === 'home' && engine.homeActivity && useGame.getState().activityCamera;
-    const key = active ? `${engine.homeActivity!.id}:${engine.homeActivity!.started}` : '';
+    const key = engine.travel
+      ? 'door'
+      : active
+        ? `${engine.homeActivity!.id}:${engine.homeActivity!.started}`
+        : '';
     if (key === this.cameraShotKey) return;
     this.cameraShotKey = key;
     camera.panEffect.reset();
     camera.zoomEffect.reset();
     camera.stopFollow();
     const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 700;
-    if (active) {
+    if (engine.travel) {
+      camera.setBounds(0, 0, W, H);
+      camera.setZoom(Math.max(this.scale.width / W, this.scale.height / H, 0.8));
+      camera.startFollow(this.ground, true, 0.08, 0.08);
+    } else if (active) {
       const activity = engine.homeActivity!;
       const shot = activityShot(
         this.scale.width,
@@ -271,9 +306,11 @@ export class MeadowScene extends Phaser.Scene {
             useGame.getState().engine.startHomeActivity(id);
         },
         () => {
-          if (useGame.getState().access === 'ready') useGame.getState().engine.setPlace('yard');
+          if (useGame.getState().access === 'ready')
+            useGame.getState().engine.requestTravel('yard');
         },
         engine.homeActivity?.started ? engine.homeActivity.id : null,
+        engine.travel?.door === 'homeExit' && engine.travel.stage === 'cross',
       );
       return;
     }
@@ -332,9 +369,12 @@ export class MeadowScene extends Phaser.Scene {
       .lineBetween(388, 278, 388, 320)
       .lineBetween(367, 299, 410, 299);
     g.fillStyle(0x786344).fillRoundedRect(449, 289, 48, 92, 16);
-    g.fillStyle(0xf0d99a).fillCircle(484, 340, 3);
+    if (engine.travel?.door === 'house' && engine.travel.stage === 'cross') {
+      g.fillStyle(0x354238).fillRoundedRect(449, 289, 48, 92, 16);
+      g.fillStyle(0x94734e).fillTriangle(449, 289, 449, 381, 427, 365);
+    } else g.fillStyle(0xf0d99a).fillCircle(484, 340, 3);
     g.fillStyle(0xd7c498).fillRoundedRect(439, 377, 69, 15, 4);
-    if (engine.place === 'yard') {
+    {
       const label = this.add
         .text(447, 433, '우리 집 · 들어가기', {
           fontFamily: 'system-ui',
@@ -347,7 +387,7 @@ export class MeadowScene extends Phaser.Scene {
       const door = this.add.zone(445, 335, 240, 200).setInteractive({ useHandCursor: true });
       door.on('pointerup', (pointer: Phaser.Input.Pointer) => {
         if (isMapClick(this, pointer) && useGame.getState().access === 'ready')
-          useGame.getState().engine.setPlace('home');
+          useGame.getState().engine.requestTravel('home');
       });
       this.scenery.add([label, door]);
     }
@@ -410,6 +450,27 @@ export class MeadowScene extends Phaser.Scene {
       g.fillStyle(0xc9ceb0, 0.55).fillEllipse(x - 4, y - 12, 28, 10);
     }
     g.fillStyle(0x7d6c47).fillRoundedRect(1050, 782, 8, 59, 3);
+    if (engine.place === 'adventure') {
+      g.fillStyle(0x725d42)
+        .fillRoundedRect(665, 1020, 18, 145, 5)
+        .fillRoundedRect(837, 1020, 18, 145, 5);
+      g.fillStyle(0xb29565).fillRoundedRect(655, 1004, 210, 26, 5);
+      const label = this.add
+        .text(760, 1185, '마당으로 · 출입문', {
+          fontFamily: 'system-ui',
+          fontSize: '16px',
+          color: '#fff4d5',
+          backgroundColor: '#3c5844bb',
+          padding: { x: 12, y: 7 },
+        })
+        .setOrigin(0.5);
+      const exit = this.add.zone(760, 1100, 200, 190).setInteractive({ useHandCursor: true });
+      exit.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+        if (isMapClick(this, pointer) && useGame.getState().access === 'ready')
+          useGame.getState().engine.requestTravel('yard');
+      });
+      this.scenery.add([label, exit]);
+    }
     g.fillStyle(0xc0a472).fillRoundedRect(1025, 773, 67, 31, 5);
     g.lineStyle(2, 0x6c7049)
       .lineBetween(1040, 788, 1075, 788)
@@ -449,6 +510,8 @@ export class MeadowScene extends Phaser.Scene {
       this.position.set(840, 690);
       this.target.copy(this.position);
       this.manual = false;
+      this.wasTravelling = false;
+      this.doorArrival = null;
     }
     if (
       this.currentPlace !== engine.place ||
@@ -458,7 +521,11 @@ export class MeadowScene extends Phaser.Scene {
       useGame.setState({ cameraMode: 'follow' });
       this.currentPlace = engine.place;
       this.enteredZone = engine.place === 'adventure' ? engine.pet.zoneId : '';
-      this.position.set(engine.place === 'home' ? 900 : 840, engine.place === 'home' ? 960 : 690);
+      if (this.doorArrival?.destination === engine.place)
+        this.position.copy(this.doorArrival.position);
+      else
+        this.position.set(engine.place === 'home' ? 900 : 840, engine.place === 'home' ? 960 : 690);
+      this.doorArrival = null;
       this.target.copy(this.position);
       this.manual = false;
       this.wander = 4;
@@ -466,7 +533,7 @@ export class MeadowScene extends Phaser.Scene {
       this.cameras.main.fadeIn(250, 42, 52, 35);
       this.currentZone = '';
     }
-    const sceneKey = `${engine.place}:${engine.pet.zoneId}:${engine.place === 'home' && engine.pet.roomCleanliness <= 30}:${engine.homeActivity?.started ? engine.homeActivity.id : ''}`;
+    const sceneKey = `${engine.place}:${engine.pet.zoneId}:${engine.place === 'home' && engine.pet.roomCleanliness <= 30}:${engine.homeActivity?.started ? engine.homeActivity.id : ''}:${engine.travel?.door}:${engine.travel?.stage}`;
     if (this.currentZone !== sceneKey) {
       this.currentZone = sceneKey;
       this.drawLandscape(engine.place === 'yard' ? 'meadow' : engine.pet.zoneId);
@@ -494,11 +561,19 @@ export class MeadowScene extends Phaser.Scene {
     const canRun = state.access === 'ready' && isPlayVisible() && !engine.paused;
     let moving = false;
     if (canRun) {
-      if (engine.homeActivity) {
+      if (this.wasTravelling && !engine.travel && !this.manual) {
+        this.target.copy(this.position);
+        this.wander = 4;
+      }
+      this.wasTravelling = Boolean(engine.travel);
+      if (engine.travel) {
+        this.target.copy(travelPoint(engine.travel));
+        this.manual = false;
+      } else if (engine.homeActivity) {
         const activity = homeActivityById(engine.homeActivity.id)!;
         this.target.set(activity.x, activity.y);
         this.manual = false;
-      } else if (engine.hunting && !engine.autoResting && enemy) {
+      } else if (engine.inCombat && !engine.autoResting && enemy) {
         const direction = this.position.x < enemy.x ? -1 : 1;
         this.target.set(enemy.x + direction * HUNTING_RULES.approachDistance, enemy.y);
         this.manual = false;
@@ -522,16 +597,17 @@ export class MeadowScene extends Phaser.Scene {
       if (moving) {
         const step = Math.min(
           distance,
-          (engine.homeActivity ? 240 : engine.hunting || this.manual ? 135 : 42) * dt,
+          (engine.travel || engine.homeActivity ? 240 : engine.inCombat || this.manual ? 135 : 42) *
+            dt,
         );
         this.position.x += (dx / distance) * step;
         this.position.y += (dy / distance) * step;
-        if (Math.abs(dx) > 1) this.pet.setFlipX(dx < 0);
       } else if (this.manual) {
         this.manual = false;
         this.wander = 4;
       }
       if (engine.homeActivity && !moving) engine.arriveHomeActivity();
+      if (engine.travel) this.doorArrival = engine.advanceTravel(this.position);
       engine.step(
         dt,
         enemy
@@ -543,12 +619,13 @@ export class MeadowScene extends Phaser.Scene {
             }
           : false,
       );
-      let animation =
-        engine.action === 'attack'
-          ? 'play'
-          : engine.action === 'idle' && moving
-            ? 'walk'
-            : engine.action;
+      const opponent = engine.inCombat && !engine.autoResting ? engine.enemy : null;
+      this.facing = petFacing(
+        this.facing,
+        moving ? { x: dx, y: dy } : { x: 0, y: 0 },
+        opponent ? { x: opponent.x - this.position.x, y: opponent.y - this.position.y } : null,
+      );
+      let animation = moving ? 'walk' : engine.action === 'attack' ? 'play' : engine.action;
       if (!['idle', 'walk', 'play', 'eat', 'happy', 'sleep'].includes(animation))
         animation = 'idle';
       const active = engine.homeActivity?.started ? engine.homeActivity : null;
@@ -558,8 +635,10 @@ export class MeadowScene extends Phaser.Scene {
             ? 'idle'
             : careMotion(active.id, homeActivityById(active.id)!.seconds - active.remaining)
                 .texture;
-        this.pet.setFlipX(false);
+        this.facing = 'left';
       }
+      // All original *_right.png frames actually face left; mirror only to face right.
+      this.pet.setFlipX(this.facing === 'right');
       const key = `${this.currentCharacter}-${animation}-${active ? 0 : Math.floor(this.age * (moving ? 6 : 2)) % 2}`;
       if (this.textures.exists(key)) this.pet.setTexture(key);
     }
@@ -582,7 +661,12 @@ export class MeadowScene extends Phaser.Scene {
         132 * (eating ? 1 + pose.chew * 0.025 : (care?.scale ?? 1)),
         132 * (eating ? 1 - pose.chew * 0.018 : (care?.scale ?? 1)),
       )
-      .setAngle(eating ? pose.lean : (care?.angle ?? 0));
+      .setAngle(
+        eating
+          ? pose.lean
+          : (care?.angle ??
+              (engine.petReaction > 0 ? Math.sin((1.8 - engine.petReaction) * 16) * 4 : 0)),
+      );
     this.pet
       .setPosition(
         this.position.x + (care?.x ?? 0),
@@ -595,6 +679,34 @@ export class MeadowScene extends Phaser.Scene {
               : Math.sin(this.age * (moving ? 11 : 2)) * (moving ? 2.5 : 1)),
       )
       .setDepth(this.position.y);
+    this.hearts.forEach((heart, i) => {
+      const elapsed = 1.8 - engine.petReaction;
+      heart
+        .setVisible(engine.petReaction > 0)
+        .setPosition(
+          this.position.x + (i - 1) * 24 + Math.sin(elapsed * 5 + i) * 4,
+          this.position.y - 122 - elapsed * 24 - (i === 1 ? 12 : 0),
+        )
+        .setAlpha(Math.min(1, engine.petReaction * 2));
+    });
+    const camera = this.cameras.main;
+    this.game.canvas.parentElement?.setAttribute(
+      'data-pet-pose',
+      JSON.stringify({
+        x: this.position.x,
+        y: this.position.y,
+        screenX: camera.x + (this.position.x - camera.worldView.x) * camera.zoom,
+        screenY: camera.y + (this.position.y - camera.worldView.y) * camera.zoom,
+        moving,
+        facing: this.facing,
+        flipX: this.pet.flipX,
+        texture: this.pet.texture.key,
+        opponent:
+          engine.inCombat && !engine.autoResting && engine.enemy
+            ? { uid: engine.enemy.uid, x: engine.enemy.x, y: engine.enemy.y }
+            : null,
+      }),
+    );
     this.petLabel
       .setText(`${engine.pet.name}${engine.action === 'sleep' ? '  ᶻ ᶻ' : ''}`)
       .setPosition(this.position.x, this.position.y + 27);

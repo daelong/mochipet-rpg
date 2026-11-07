@@ -21,7 +21,13 @@ MOCHI_E2E_PRODUCTION=1 pnpm test:e2e
 
 `pnpm build`는 리소스 경로 검사 → 웹 CSV 일치 검사 → 전체 TypeScript 타입 검사 → Vite 빌드를 수행합니다. CSV는 `pnpm catalogs`로 생성하고 `pnpm catalogs:check`로 확인합니다. 데이터 변경 시 집 안 활동을 포함한 6종의 `web-*.csv`도 함께 갱신하세요. `pnpm format`은 웹 소스의 서식만 정리합니다.
 
+문 출입·쓰다듬기 검사는 `pnpm test:e2e doors-and-petting.spec.ts`입니다. 요청만으로 장소가 바뀌지 않는지, 실제 위치가 문 앞과 문턱에 도착한 뒤 전환하는지, 취소·재접속·전투 중단과 이동 중 쓰다듬기/방향 변경을 PC 클릭·모바일 터치로 확인합니다. 출입 좌표는 `packages/shared/src/travel.ts`, 기분 반응은 행동 상태와 별도 타이머로 관리합니다.
+
 사냥터 변경 검사는 `pnpm test:e2e --grep "separate field|automatic recovery|zone and character|level 20"`로 실행할 수 있습니다. 사냥터 입장 시 생성 5마리·무작위 위치·자동 보상·OFF 후 보상 중단·마당 복귀·회복 후 재개를 확인합니다. 몬스터 인스턴스와 위치는 재접속 후 이어지지 않습니다. 저장 스키마 v2와 기존 v1 이전 경로는 유지했습니다.
+
+수동 전투 검사는 `pnpm test:e2e apps/web/tests/manual-combat.spec.ts`로 실행합니다. 실제 몬스터 클릭/터치로 한 대상을 지정해 접근·일반 공격·수동 스킬·처치 후 중단을 검사하며, 드래그 오입력 방지·대상 전환/땅 클릭 취소·작은 화면의 메뉴 입력도 포함합니다. `GameEngine.attackEnemy(uid)`는 수동 전투를 시작하고 자동사냥을 끕니다. `requestSkill()`은 대상을 고정한 요청을 만들며, 다음 Phaser 프레임의 대상 ID·근접 판정이 맞을 때만 발동합니다. 스킬 대기·수동 전투·자동 스킬 선택은 현재 세션 상태이며 Pet 스키마에는 포함하지 않습니다. 수동 전투에는 자동 스킬/처치 후 다음 대상 탐색/회복 후 자동 재개를 적용하지 않습니다.
+
+이동·공격 방향은 `pnpm test:e2e apps/web/tests/facing.spec.ts`로 검사합니다. 원본 `*_right.png`의 실제 얼굴은 왼쪽을 향하므로 오른쪽으로 갈 때만 반전합니다. 이동 중에는 실제 이동 방향을 우선하고, 정지한 사냥 상태에서는 현재 대상을 봅니다. 방향 없는 대기와 정확한 상하 이동은 직전 좌우 방향을 유지하며, 집 안 활동의 소품 연출은 기존 고정 방향을 사용합니다. 해당 PNG에는 상하·후면 전용 이미지가 없습니다. `.game-canvas`의 `data-pet-pose`는 실제 Phaser 위치·화면 좌표·반전·텍스처·현재 상대를 검사하는 읽기용 값이며 저장에는 포함하지 않습니다.
 
 Phaser가 프레임마다 좌표를 관리하고 공통 규칙 엔진을 호출합니다. Zustand는 상태 변화가 있을 때, 전투 중 최대 초당 5회 스냅샷을 UI로 전달합니다. 좌표는 React에 저장하지 않습니다. 탭 비활성화·재접속의 경과 시간을 보상으로 환산하지 않으며, 사냥은 재접속 시 OFF입니다.
 

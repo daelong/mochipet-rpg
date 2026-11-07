@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { monsterById } from '@mochi/game-data';
 import type { Enemy } from '@mochi/shared';
+import { isMapClick } from './mapPan';
 interface MonsterView {
   image: Phaser.GameObjects.Image;
   shadow: Phaser.GameObjects.Ellipse;
@@ -11,7 +12,10 @@ interface MonsterView {
 export class MonsterField {
   private views = new Map<number, MonsterView>();
   private bars: Phaser.GameObjects.Graphics;
-  constructor(private scene: Phaser.Scene) {
+  constructor(
+    private scene: Phaser.Scene,
+    private onAttack: (uid: number) => void,
+  ) {
     this.bars = scene.add.graphics().setDepth(2900);
   }
   render(enemies: readonly Enemy[], targetUid: number | null, age: number) {
@@ -34,7 +38,8 @@ export class MonsterField {
         view = {
           image: this.scene.add
             .image(enemy.x, enemy.y - 36, `mob-${enemy.id}`)
-            .setDisplaySize(110, 110),
+            .setDisplaySize(110, 110)
+            .setInteractive({ useHandCursor: true }),
           shadow: this.scene.add.ellipse(enemy.x, enemy.y + 4, 64, 18, 0x233b2a, 0.18),
           name: this.scene.add
             .text(enemy.x, enemy.y - 106, monsterById(enemy.id).name, {
@@ -48,6 +53,9 @@ export class MonsterField {
             .setOrigin(0.5)
             .setDepth(3000),
         };
+        view.image.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+          if (isMapClick(this.scene, pointer)) this.onAttack(enemy.uid);
+        });
         this.views.set(enemy.uid, view);
       }
       const { x, y } = enemy;

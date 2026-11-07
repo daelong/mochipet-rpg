@@ -46,6 +46,7 @@ import {
   HUNTING_RULES,
   homeActivityById,
   characterById,
+  monsterById,
   petAsset,
 } from '@mochi/game-data';
 import { MAX_LEVEL, agility, attack, defense, maxHp, xpForLevel } from '@mochi/shared';
@@ -237,6 +238,15 @@ export default function App() {
   const skill = SKILLS.find((s) => s.id === char.skillId)!;
   const zone = ZONES.find((z) => z.id === p.zoneId)!;
   const enabled = access === 'ready';
+  const skillDisabled =
+    !enabled ||
+    !readyScene ||
+    snapshot.paused ||
+    snapshot.autoResting ||
+    !snapshot.enemy ||
+    snapshot.skillCooldown > 0 ||
+    snapshot.skillQueued;
+  const castSkill = () => setFeedback(engine.requestSkill().message);
   const atHome = snapshot.place === 'home';
   const activity = snapshot.homeActivity ? homeActivityById(snapshot.homeActivity.id)! : null;
   const care =
@@ -254,8 +264,8 @@ export default function App() {
   }, [snapshot.place, page]);
   const lastEvent = snapshot.events.at(-1);
   useEffect(() => {
-    if (atHome && lastEvent?.kind === 'notice') setFeedback(lastEvent.message);
-  }, [atHome, lastEvent?.id]);
+    if (lastEvent?.kind === 'notice') setFeedback(lastEvent.message);
+  }, [lastEvent?.id]);
   useEffect(() => {
     if (page) panel.current?.focus();
   }, [page]);
@@ -356,8 +366,10 @@ export default function App() {
       className="game-shell"
       id="main-content"
       data-place={snapshot.place}
+      data-travelling={Boolean(snapshot.travel)}
       data-activity-camera={filming}
       data-camera-mode={cameraMode}
+      data-combat-mode={snapshot.hunting ? 'auto' : snapshot.manualCombat ? 'manual' : 'none'}
     >
       <GameCanvas />
       {filming && (
@@ -462,15 +474,19 @@ export default function App() {
             <span />
             {snapshot.place === 'adventure' &&
               `몬스터 ${snapshot.enemies.length}/${HUNTING_RULES.maxMonsters} · `}
-            {activity
-              ? activity.name
-              : snapshot.autoResting
-                ? '회복 후 재개'
-                : snapshot.hunting
-                  ? '자동 사냥 중'
-                  : snapshot.action === 'sleep'
-                    ? '쉬는 중'
-                    : '자유 산책'}
+            {snapshot.travel
+              ? '문으로 이동 중'
+              : activity
+                ? activity.name
+                : snapshot.autoResting
+                  ? '회복 후 재개'
+                  : snapshot.hunting
+                    ? '자동 사냥 중'
+                    : snapshot.manualCombat
+                      ? '수동 공격 중'
+                      : snapshot.action === 'sleep'
+                        ? '쉬는 중'
+                        : '자유 산책'}
           </span>
         </div>
         <div className="coin-wallet glass" aria-label={`보유 코인 ${p.coins}`}>
@@ -514,7 +530,7 @@ export default function App() {
           onClick={(e) => {
             if (atHome) changePage('home', e.currentTarget);
             else {
-              engine.setPlace('home');
+              engine.requestTravel('home');
               setPage(null);
             }
           }}
@@ -599,7 +615,7 @@ export default function App() {
           </button>
         ))}
       </nav>
-      {atHome && p.chosen && !page && !activity && (
+      {atHome && p.chosen && !page && !activity && !snapshot.travel && (
         <div className="home-dock glass" aria-label="집 안 활동 바로가기">
           {HOME_ACTIVITIES.map((a) => (
             <button
@@ -623,12 +639,12 @@ export default function App() {
           </button>
         </div>
       )}
-      {(atHome || snapshot.place === 'adventure') && !page && p.chosen && (
+      {(atHome || snapshot.place === 'adventure') && !page && p.chosen && !snapshot.travel && (
         <button
           className={`yard-return glass ${activity ? 'during-activity' : ''}`}
           disabled={!enabled}
           onClick={() => {
-            engine.setPlace('yard');
+            engine.requestTravel('yard');
             saveNow();
           }}
         >
@@ -636,7 +652,88 @@ export default function App() {
           마당으로
         </button>
       )}
+      {snapshot.travel && !page && (
+        <div className="door-travel glass" role="status" aria-label="문으로 이동 중">
+          <House size={20} />
+          <span>
+            <b>{snapshot.travel.destination === 'home' ? '우리 집으로' : '마당으로'}</b>
+            <small>
+              {snapshot.travel.stage === 'approach'
+                ? '문 앞까지 걸어가고 있어요'
+                : '문을 통과하고 있어요'}
+            </small>
+          </span>
+          <button className="outline" disabled={!enabled} onClick={() => engine.cancelTravel()}>
+            이동 취소
+          </button>
+        </div>
+      )}
       {page !== 'home' && homeProgress}
+      {snapshot.place === 'adventure' && p.chosen && !page && !snapshot.travel && (
+        <section className="combat-controls glass" aria-label="전투 조작">
+          <div className="combat-target">
+            <div>
+              <small>
+                {snapshot.hunting
+                  ? '자동사냥'
+                  : snapshot.manualCombat
+                    ? '수동 공격 · 처치 후 멈춤'
+                    : '직접 사냥하기'}
+              </small>
+              <b>
+                {snapshot.enemy
+                  ? `${monsterById(snapshot.enemy.id).name} · ${snapshot.enemy.hp}/${snapshot.enemy.maxHp}`
+                  : snapshot.autoResting
+                    ? '회복 후 사냥을 재개해요'
+                    : '몬스터를 누르면 이동해 공격해요'}
+              </b>
+            </div>
+            {(snapshot.hunting || snapshot.manualCombat) && (
+              <button
+                className="outline"
+                disabled={!enabled}
+                onClick={() => setFeedback(engine.cancelAttack().message)}
+              >
+                <Square size={14} /> 공격 중단
+              </button>
+            )}
+          </div>
+          <div className="combat-skill-row">
+            <button
+              className="cast-skill"
+              data-testid="cast-skill"
+              aria-label={`스킬 사용: ${skill.name}`}
+              disabled={skillDisabled}
+              onClick={castSkill}
+            >
+              <Sparkles size={20} />
+              <span>
+                <b>{skill.name}</b>
+                <small>
+                  {snapshot.skillQueued
+                    ? '접근 후 사용 대기'
+                    : snapshot.skillCooldown > 0
+                      ? `재사용 ${snapshot.skillCooldown}초`
+                      : '눌러서 스킬 사용'}
+                </small>
+              </span>
+            </button>
+            <label className="auto-skill-option">
+              <input
+                type="checkbox"
+                aria-label="자동사냥 시 스킬 자동 사용"
+                checked={snapshot.autoSkill}
+                disabled={!enabled || !readyScene}
+                onChange={(e) => engine.setAutoSkill(e.target.checked)}
+              />
+              <span>
+                자동사냥 시<br />
+                스킬 자동 사용
+              </span>
+            </label>
+          </div>
+        </section>
+      )}
       <div className="world-hint" hidden={atHome && p.chosen}>
         {!p.chosen ? (
           <button
@@ -658,7 +755,7 @@ export default function App() {
                   ? snapshot.autoResting
                     ? '회복하면 자동으로 사냥을 이어가요'
                     : '가까운 몬스터를 차례로 자동 공격해요'
-                  : '몬스터 최대 5마리 · 자동사냥을 켜 보세요'}
+                  : '몬스터를 눌러 직접 사냥할 수 있어요'}
           </span>
         )}
       </div>
@@ -812,7 +909,7 @@ export default function App() {
                   className="outline full-width"
                   disabled={!enabled}
                   onClick={() => {
-                    engine.setPlace('yard');
+                    engine.requestTravel('yard');
                     closePanel();
                     saveNow();
                   }}
@@ -831,7 +928,7 @@ export default function App() {
                 <div className="section-heading">
                   <div>
                     <h2>사냥터에 입장해 모험을 떠나요</h2>
-                    <p>몬스터가 최대 5마리 나타나요. 입장 후 자동사냥을 켜 주세요.</p>
+                    <p>몬스터가 최대 5마리 나타나요. 몬스터를 누르거나 자동사냥을 켜 보세요.</p>
                   </div>
                   <span className="small-note">사냥터 4곳</span>
                 </div>
@@ -839,7 +936,7 @@ export default function App() {
                   className="outline full-width yard-link"
                   disabled={!enabled}
                   onClick={() => {
-                    engine.setPlace('yard');
+                    engine.requestTravel('yard');
                     closePanel();
                   }}
                 >
@@ -1058,7 +1155,10 @@ export default function App() {
                 <div className="section-heading">
                   <div>
                     <h2>28개의 반짝임</h2>
-                    <p>선택한 친구의 고유 스킬이 전투 중 자동으로 발동해요.</p>
+                    <p>
+                      사냥터의 스킬 버튼으로 직접 사용해요. 자동사냥 중 스킬 자동 사용도 선택할 수
+                      있어요.
+                    </p>
                   </div>
                   <span className="tag">강화 +{p.skillRank}</span>
                 </div>
@@ -1086,6 +1186,20 @@ export default function App() {
                                   ? '방어'
                                   : '공격'}
                           </span>
+                          {active && snapshot.place === 'adventure' && (
+                            <button
+                              className="outline"
+                              disabled={skillDisabled}
+                              onClick={castSkill}
+                            >
+                              <Sparkles size={15} />{' '}
+                              {snapshot.skillCooldown > 0
+                                ? `재사용 ${snapshot.skillCooldown}초`
+                                : snapshot.skillQueued
+                                  ? '사용 대기 중'
+                                  : '스킬 사용'}
+                            </button>
+                          )}
                         </div>
                       </article>
                     );
@@ -1250,7 +1364,14 @@ export default function App() {
             <h3>우리의 첫 모험, 이렇게 시작해요.</h3>
             <ol>
               <li>28종 중 마음이 가는 친구를 선택해 주세요.</li>
-              <li>사냥터에 입장한 뒤 자동사냥 ON을 누르면 가까운 몬스터부터 차례로 싸워요.</li>
+              <li>
+                사냥터에서 몬스터를 누르면 그 대상에게 가서 공격해요. 스킬 버튼으로 고유 스킬을
+                사용해요.
+              </li>
+              <li>
+                자동사냥 ON을 누르면 가까운 몬스터부터 차례로 싸워요. 스킬 자동 사용도 선택할 수
+                있어요.
+              </li>
               <li>모은 코인으로 음식, 장난감, 훈련을 선물해 주세요.</li>
               <li>맵의 땅을 누르면 그곳으로 산책해요. 양옆 버튼으로 기능을 열어요.</li>
               <li>
