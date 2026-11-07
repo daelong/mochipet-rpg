@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   PawPrint,
   ShoppingBag,
@@ -34,6 +34,8 @@ import {
   Camera,
   Expand,
   LocateFixed,
+  PictureInPicture2,
+  Maximize2,
 } from 'lucide-react';
 import {
   CHARACTERS,
@@ -41,6 +43,7 @@ import {
   SKILLS,
   ZONES,
   HOME_ACTIVITIES,
+  HUNTING_RULES,
   homeActivityById,
   characterById,
   petAsset,
@@ -49,6 +52,8 @@ import { MAX_LEVEL, agility, attack, defense, maxHp, xpForLevel } from '@mochi/s
 import { GameCanvas } from './game/GameCanvas';
 import { careMotion } from './game/careMotion';
 import { resetGame, saveNow, startSession, useGame } from './state/game';
+import { openMiniWindow, closeMiniWindow, supportsMiniWindow } from './pip/miniWindow';
+import { isMiniWindowOpen, subscribeSurface } from './pip/playSurface';
 import { BACKUP_KEY, RESET_KEY, SAVE_KEY, HOME_UPGRADE_KEY } from './state/storage';
 type Page = 'home' | 'map' | 'pet' | 'shop' | 'skills' | 'journal' | 'settings';
 const navigation = [
@@ -207,6 +212,8 @@ function CharacterPicker({ onClose }: { onClose: () => void }) {
   );
 }
 export default function App() {
+  const mini = useSyncExternalStore(subscribeSurface, isMiniWindowOpen);
+  const miniSupported = supportsMiniWindow();
   const [page, setPage] = useState<Page | null>(null);
   const [picker, setPicker] = useState(false);
   const [help, setHelp] = useState(false);
@@ -257,6 +264,19 @@ export default function App() {
     const timer = window.setTimeout(() => setFeedback(''), 4000);
     return () => window.clearTimeout(timer);
   }, [feedback]);
+  async function enterMiniWindow() {
+    if (!enabled || !readyScene) return;
+    setPage(null);
+    try {
+      await openMiniWindow();
+    } catch {
+      setFeedback('미니 창을 열지 못했어요. 지원되는 PC 브라우저에서 버튼을 다시 눌러 주세요.');
+    }
+  }
+  function returnToMain() {
+    window.focus();
+    closeMiniWindow();
+  }
   function buy(id: string) {
     if (!enabled) return;
     const result = engine.purchase(id);
@@ -440,13 +460,17 @@ export default function App() {
           </button>
           <span className="activity-badge">
             <span />
+            {snapshot.place === 'adventure' &&
+              `몬스터 ${snapshot.enemies.length}/${HUNTING_RULES.maxMonsters} · `}
             {activity
               ? activity.name
-              : snapshot.hunting
-                ? '자동 사냥 중'
-                : snapshot.action === 'sleep'
-                  ? '쉬는 중'
-                  : '자유 산책'}
+              : snapshot.autoResting
+                ? '회복 후 재개'
+                : snapshot.hunting
+                  ? '자동 사냥 중'
+                  : snapshot.action === 'sleep'
+                    ? '쉬는 중'
+                    : '자유 산책'}
           </span>
         </div>
         <div className="coin-wallet glass" aria-label={`보유 코인 ${p.coins}`}>
@@ -503,9 +527,14 @@ export default function App() {
           data-testid="hunt"
           disabled={!enabled || Boolean(snapshot.homeActivity)}
           aria-pressed={snapshot.hunting}
-          onClick={() => {
+          onClick={(e) => {
             if (!p.chosen) {
               setPicker(true);
+              return;
+            }
+            if (snapshot.place !== 'adventure') {
+              if (page !== 'map') changePage('map', e.currentTarget);
+              setFeedback('사냥터를 골라 입장해 주세요.');
               return;
             }
             setFeedback(engine.toggleHunt().message);
@@ -514,7 +543,13 @@ export default function App() {
           }}
         >
           {snapshot.hunting ? <Square size={22} /> : <Swords size={22} />}
-          <span>{snapshot.hunting ? '사냥 OFF' : '사냥 ON'}</span>
+          <span>
+            {snapshot.place !== 'adventure'
+              ? '사냥터 입장'
+              : snapshot.hunting
+                ? '자동사냥 OFF'
+                : '자동사냥 ON'}
+          </span>
         </button>
         <button
           className="game-button"
@@ -588,7 +623,7 @@ export default function App() {
           </button>
         </div>
       )}
-      {atHome && !page && p.chosen && (
+      {(atHome || snapshot.place === 'adventure') && !page && p.chosen && (
         <button
           className={`yard-return glass ${activity ? 'during-activity' : ''}`}
           disabled={!enabled}
@@ -619,7 +654,11 @@ export default function App() {
               ? '맵을 끌어 원하는 곳을 둘러보세요'
               : snapshot.place === 'yard'
                 ? '우리 집에 들어가 친구를 돌봐 주세요'
-                : '맵 끌어 둘러보기 · 땅 눌러 산책'}
+                : snapshot.hunting
+                  ? snapshot.autoResting
+                    ? '회복하면 자동으로 사냥을 이어가요'
+                    : '가까운 몬스터를 차례로 자동 공격해요'
+                  : '몬스터 최대 5마리 · 자동사냥을 켜 보세요'}
           </span>
         )}
       </div>
@@ -649,6 +688,43 @@ export default function App() {
       <div className={`feedback ${feedback ? 'visible' : ''}`} role="status" aria-live="polite">
         {feedback}
       </div>
+      {mini && (
+        <nav className="mini-toolbar glass" aria-label="미니 창 조작">
+          <button
+            disabled={!enabled || Boolean(snapshot.homeActivity)}
+            aria-pressed={snapshot.hunting}
+            onClick={() => {
+              if (!p.chosen) {
+                setPicker(true);
+                return;
+              }
+              if (snapshot.place !== 'adventure') {
+                setPage('map');
+                return;
+              }
+              setFeedback(engine.toggleHunt().message);
+              saveNow();
+            }}
+          >
+            <Swords size={17} />
+            <span>
+              {snapshot.place !== 'adventure'
+                ? '사냥터 입장'
+                : snapshot.hunting
+                  ? '자동사냥 OFF'
+                  : '자동사냥 ON'}
+            </span>
+          </button>
+          <button disabled={!enabled || p.coins < 15} onClick={() => buy('rice')}>
+            <Utensils size={17} />
+            <span>먹이 · 15코인</span>
+          </button>
+          <button onClick={returnToMain}>
+            <Maximize2 size={17} />
+            <span>본 화면으로</span>
+          </button>
+        </nav>
+      )}
       {page && (
         <aside
           className="side-panel glass"
@@ -754,8 +830,8 @@ export default function App() {
               <>
                 <div className="section-heading">
                   <div>
-                    <h2>마당 너머로 모험을 떠나요</h2>
-                    <p>친구가 자라는 만큼, 새로운 길이 열려요.</p>
+                    <h2>사냥터에 입장해 모험을 떠나요</h2>
+                    <p>몬스터가 최대 5마리 나타나요. 입장 후 자동사냥을 켜 주세요.</p>
                   </div>
                   <span className="small-note">사냥터 4곳</span>
                 </div>
@@ -774,14 +850,19 @@ export default function App() {
                     const locked = p.level < z.level;
                     return (
                       <button
-                        className={`zone-card zone-${i} ${p.zoneId === z.id ? 'selected' : ''}`}
+                        className={`zone-card zone-${i} ${snapshot.place === 'adventure' && p.zoneId === z.id ? 'selected' : ''}`}
                         key={z.id}
                         disabled={!enabled || locked}
                         onClick={() => {
-                          setFeedback(engine.setZone(z.id).message);
-                          saveNow();
+                          const result = engine.setZone(z.id);
+                          setFeedback(result.message);
+                          if (result.ok) {
+                            closePanel();
+                            saveNow();
+                          }
                         }}
-                        aria-pressed={p.zoneId === z.id}
+                        aria-label={`${z.name} 입장 · Lv.${z.level} 이상${locked ? ' · 잠김' : ''}`}
+                        aria-pressed={snapshot.place === 'adventure' && p.zoneId === z.id}
                       >
                         <div className="zone-art">
                           <span>{z.emoji}</span>
@@ -797,12 +878,15 @@ export default function App() {
                             <b>{z.name}</b>
                             <small>Lv.{z.level} 이상</small>
                           </span>
-                          {p.zoneId === z.id ? (
+                          {snapshot.place === 'adventure' && p.zoneId === z.id ? (
                             <span className="zone-selected">
                               <Check size={13} /> 머무는 중
                             </span>
                           ) : (
-                            <ChevronRight size={16} />
+                            <span className="zone-selected">
+                              {locked ? '레벨 부족' : '입장하기'}
+                              <ChevronRight size={16} />
+                            </span>
                           )}
                         </div>
                       </button>
@@ -1059,6 +1143,28 @@ export default function App() {
             {page === 'settings' && (
               <section className="content-section settings-panel">
                 <h2>기록과 플레이</h2>
+                <div className="setting-row mini-setting">
+                  <div>
+                    <h3>미니 펫 창 · PiP</h3>
+                    <p>
+                      {miniSupported
+                        ? '작은 별도 창에서 같은 친구로 계속 플레이해요. 본 화면 탭은 열어 두세요.'
+                        : '이 브라우저에서는 조작 가능한 PiP를 지원하지 않아요. 일반 화면으로 플레이해 주세요.'}
+                    </p>
+                  </div>
+                  <button
+                    className="outline"
+                    disabled={!enabled || !readyScene || !miniSupported}
+                    onClick={mini ? returnToMain : enterMiniWindow}
+                  >
+                    <PictureInPicture2 size={17} />
+                    {mini ? '본 화면으로' : '미니 창 열기'}
+                  </button>
+                </div>
+                <p className="fine-print">
+                  미니 창이 보이면 자동사냥을 이어가요. 브라우저 절전·창 최소화로 진행이 멈출 수
+                  있고 본 탭을 닫으면 미니 창도 닫혀요.
+                </p>
                 <p>
                   이 브라우저에 자동 저장해요. 계정 연결과 기기 간 동기화는 다음 단계에서 제공할
                   예정이에요.
@@ -1126,8 +1232,8 @@ export default function App() {
                   <div>
                     <h3>가볍게, 천천히</h3>
                     <p>
-                      게임은 30 FPS를 목표로 렌더링해요. 숨겨진 탭에서는 진행을 멈춰요. 탭 종료·자리
-                      비움 보상은 아직 제공하지 않아요.
+                      게임은 30 FPS를 목표로 렌더링해요. 본 화면과 미니 창이 모두 보이지 않으면
+                      진행을 멈춰요. 탭 종료·자리 비움 보상은 아직 제공하지 않아요.
                     </p>
                   </div>
                 </div>
@@ -1144,7 +1250,7 @@ export default function App() {
             <h3>우리의 첫 모험, 이렇게 시작해요.</h3>
             <ol>
               <li>28종 중 마음이 가는 친구를 선택해 주세요.</li>
-              <li>사냥 ON을 누르면 친구가 몬스터를 찾아가 싸워요.</li>
+              <li>사냥터에 입장한 뒤 자동사냥 ON을 누르면 가까운 몬스터부터 차례로 싸워요.</li>
               <li>모은 코인으로 음식, 장난감, 훈련을 선물해 주세요.</li>
               <li>맵의 땅을 누르면 그곳으로 산책해요. 양옆 버튼으로 기능을 열어요.</li>
               <li>
@@ -1154,8 +1260,8 @@ export default function App() {
               <li>HP가 부족하면 쉬어요. 새로운 레벨에서 사냥터가 열려요.</li>
             </ol>
             <p>
-              현재는 이 브라우저에서 즐기는 싱글 모험이에요. 계정·온라인 월드·자리 비움 보상·미니
-              창·PWA는 준비 중이며, 탭을 숨기면 진행을 멈춰요.
+              현재는 이 브라우저에서 즐기는 싱글 모험이에요. 계정·온라인 월드·자리 비움 보상·PWA는
+              준비 중이에요. 설정에서 지원되는 PC 브라우저의 PiP 미니 창을 열 수 있어요.
             </p>
           </div>
           <button className="primary full-width" onClick={() => setHelp(false)}>

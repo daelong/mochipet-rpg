@@ -25,6 +25,7 @@ describe('home life', () => {
     expect(g.snapshot().place).toBe('yard');
     advance(g, 10);
     expect(g.enemy).toBeNull();
+    g.setZone('meadow');
     g.toggleHunt();
     expect(g.place).toBe('adventure');
     for (let i = 0; i < 10; i++) g.step(0.1, false);
@@ -51,7 +52,7 @@ describe('home life', () => {
       advance(g, 2);
       expect(g.homeActivity?.remaining).toBe(a.seconds);
       expect(g.pet.homeActivities[a.id]).toBeUndefined();
-    // Compare needs at the furniture so travel time is excluded.
+      // Compare needs at the furniture so travel time is excluded.
       const arrived = structuredClone(g.pet);
       g.arriveHomeActivity();
       advance(g, a.seconds);

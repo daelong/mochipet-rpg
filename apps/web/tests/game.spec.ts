@@ -13,6 +13,14 @@ async function choose(page: Page) {
   await dialog.getByRole('button', { name: '함께 모험하기' }).click();
   await expect(dialog).not.toBeVisible();
 }
+async function enterField(page: Page, name = '풀잎 초원') {
+  const entrance = page.getByRole('button', { name: new RegExp(`^${name} 입장`) });
+  if (!(await entrance.isVisible())) await nav(page, '사냥터');
+  await entrance.click();
+  await expect(page.locator('main')).toHaveAttribute('data-place', 'adventure');
+  await expect(page.locator('#game-panel')).toHaveCount(0);
+  await expect(page.locator('.game-canvas')).toHaveAttribute('data-enemy-count', '5');
+}
 async function saved(page: Page) {
   return page.evaluate(() => JSON.parse(localStorage.getItem('mochipet.web.v1') ?? 'null'));
 }
@@ -64,15 +72,17 @@ test('play, shop, rename, reload, protected reset, and responsive layout', async
   expect((await page.locator('canvas').screenshot()).equals(frame)).toBe(false);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('game-world.png'), fullPage: true });
+  if ((await page.locator('main').getAttribute('data-place')) !== 'adventure')
+    await enterField(page);
   await page.getByTestId('hunt').click();
-  await expect(page.getByTestId('hunt')).toHaveText('사냥 OFF');
+  await expect(page.getByTestId('hunt')).toHaveText('자동사냥 OFF');
   await expect
     .poll(async () => Number((await page.getByTestId('coins').innerText()).replaceAll(',', '')), {
       timeout: 30000,
     })
     .toBeGreaterThan(60);
   await page.getByTestId('hunt').click();
-  await expect(page.getByTestId('hunt')).toHaveText('사냥 ON');
+  await expect(page.getByTestId('hunt')).toHaveText('자동사냥 ON');
   await nav(page, '모찌 상점');
   await page.getByRole('button', { name: '따끈한 주먹밥 구매 15 코인' }).click();
   await expect(page.locator('.feedback')).toHaveText('따끈한 주먹밥 구매 완료!');
@@ -87,7 +97,7 @@ test('play, shop, rename, reload, protected reset, and responsive layout', async
   const before = await saved(page);
   await page.reload();
   await expect(page.locator('.player-name')).toContainText('구름이');
-  await expect(page.getByTestId('hunt')).toHaveText('사냥 ON');
+  await expect(page.getByTestId('hunt')).toHaveText('사냥터 입장');
   const after = await saved(page);
   expect(after.coins).toBe(before.coins);
   expect(after.kills).toBe(before.kills);
@@ -145,6 +155,7 @@ test('level 20 stops XP growth while hunting still grants coins', async ({ page 
   );
   await page.goto('/');
   await expect(page.getByTestId('hunt')).toBeEnabled();
+  await enterField(page);
   await page.getByTestId('hunt').click();
   await expect(page.locator('.portrait>span')).toHaveText('Lv.20', { timeout: 30000 });
   await expect(page.locator('.xp-label')).toContainText('싱글 최고 레벨');
@@ -268,6 +279,7 @@ test('zone and character changes remain available from the floating menus', asyn
   for (const name of ['반짝 숲', '바위 동굴', '달빛 언덕', '풀잎 초원']) {
     await page.getByRole('button', { name: new RegExp(name + '.*Lv') }).click();
     await expect(page.locator('.location-button')).toContainText(name);
+    await nav(page, '사냥터');
     await expect(page.getByRole('button', { name: new RegExp(name + '.*Lv') })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -279,8 +291,10 @@ test('zone and character changes remain available from the floating menus', asyn
   await page.getByRole('button', { name: '함께 모험하기' }).click();
   await expect(page.locator('.player-name')).toContainText('용');
   await page.getByRole('button', { name: '패널 닫기' }).click();
+  if ((await page.locator('main').getAttribute('data-place')) !== 'adventure')
+    await enterField(page);
   await page.getByTestId('hunt').click();
-  await expect(page.getByTestId('hunt')).toHaveText('사냥 OFF');
+  await expect(page.getByTestId('hunt')).toHaveText('자동사냥 OFF');
   await expect.poll(async () => (await saved(page)).kills, { timeout: 30000 }).toBeGreaterThan(0);
 });
 
@@ -351,7 +365,7 @@ test('yard, home furniture, timed care and saved needs', async ({ page, isMobile
   await expect(page.locator('.scene-loading')).not.toBeVisible();
   await expect(page.getByRole('group', { name: '집 안 활동 진행' })).toHaveCount(0);
   expect((await saved(page)).homeActivities.sleep).toBeUndefined();
-  await expect(page.getByTestId('hunt')).toHaveText('사냥 ON');
+  await expect(page.getByTestId('hunt')).toHaveText('사냥터 입장');
   expect(errors).toEqual([]);
 });
 
@@ -746,7 +760,9 @@ test('map dragging explores freely, ignores furniture clicks and resumes followi
   expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeGreaterThan(60);
   await page.mouse.click(520, 410); // Walk while retaining the chosen camera position.
   await page.waitForTimeout(1400);
-  expect(await camera()).toEqual(after);
+  // Phaser rounds the rendered camera to physical pixels on the following frame.
+  const held = await camera();
+  expect(Math.hypot(held.x - after.x, held.y - after.y)).toBeLessThanOrEqual(1);
   const overlay = await page
     .locator('.world-hint, .game-meta > span, .game-meta button')
     .evaluateAll((els) =>
@@ -823,4 +839,85 @@ test('a failed scene download offers reconnection without erasing the pet', asyn
   await page.getByRole('button', { name: '화면 다시 연결', exact: true }).click();
   await expect(page.locator('.scene-loading')).not.toBeVisible();
   expect((await saved(page)).coins).toBe(123);
+});
+
+test('enter a separate field, fight five random monsters automatically, stop and leave', async ({
+  page,
+}, testInfo) => {
+  await page.addInitScript((p) => localStorage.setItem('mochipet.web.v1', JSON.stringify(p)), {
+    ...defaults(),
+    chosen: true,
+    level: 8,
+    defenseBonus: 30,
+  });
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await expect(page.locator('.scene-loading')).not.toBeVisible();
+  const map = page.locator('.game-canvas');
+  await expect(page.locator('main')).toHaveAttribute('data-place', 'yard');
+  await expect(map).toHaveAttribute('data-enemy-count', '0');
+  await page.getByTestId('hunt').click();
+  await expect(page.getByRole('heading', { name: '사냥터', exact: true })).toBeVisible();
+  await expect(page.locator('main')).toHaveAttribute('data-place', 'yard');
+  await enterField(page);
+  const before = JSON.parse((await map.getAttribute('data-monsters'))!);
+  expect(before).toHaveLength(5);
+  expect(new Set(before.map((m: { uid: number }) => m.uid)).size).toBe(5);
+  expect(new Set(before.map((m: { x: number; y: number }) => `${m.x},${m.y}`)).size).toBe(5);
+  await expect(page.getByTestId('hunt')).toHaveText('자동사냥 ON');
+  const exitBox = await page.getByRole('button', { name: '마당으로', exact: true }).boundingBox();
+  const toastBox = await page.locator('.feedback').boundingBox();
+  expect(exitBox).not.toBeNull();
+  expect(toastBox).not.toBeNull();
+  expect(toastBox!.y + toastBox!.height).toBeLessThan(exitBox!.y);
+  await page.waitForTimeout(650); // Let the field-entry fade finish before visual inspection.
+  await page.screenshot({ path: testInfo.outputPath('hunting-field-five-monsters.png') });
+  await page.getByTestId('hunt').click();
+  await expect(page.getByTestId('hunt')).toHaveAttribute('aria-pressed', 'true');
+  await expect
+    .poll(async () => Number((await page.getByTestId('coins').innerText()).replaceAll(',', '')), {
+      timeout: 30000,
+    })
+    .toBeGreaterThan(85);
+  await page.getByTestId('hunt').click();
+  const stoppedCoins = await page.getByTestId('coins').innerText();
+  await expect(map).toHaveAttribute('data-enemy-count', '5', { timeout: 15000 });
+  await page.waitForTimeout(1300);
+  expect(await page.getByTestId('coins').innerText()).toBe(stoppedCoins);
+  await page.getByRole('button', { name: '마당으로', exact: true }).click();
+  await expect(page.locator('main')).toHaveAttribute('data-place', 'yard');
+  await expect(map).toHaveAttribute('data-enemy-count', '0');
+  await enterField(page, '반짝 숲');
+  const forest = JSON.parse((await map.getAttribute('data-monsters'))!);
+  expect(forest.every((m: { id: string }) => ['bat', 'foxfire'].includes(m.id))).toBe(true);
+  await expect(page.getByTestId('hunt')).toHaveAttribute('aria-pressed', 'false');
+  expect(errors).toEqual([]);
+});
+
+test('automatic recovery resumes hunting and manual OFF prevents resumption', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('mochipet.web.v1', JSON.stringify(p)), {
+    ...defaults(),
+    chosen: true,
+    hp: 10,
+    energy: 15,
+  });
+  await page.goto('/');
+  await expect(page.locator('.scene-loading')).not.toBeVisible();
+  await enterField(page);
+  await page.getByTestId('hunt').click();
+  const map = page.locator('.game-canvas');
+  await expect(map).toHaveAttribute('data-auto-resting', 'true');
+  await expect(page.getByTestId('hunt')).toHaveAttribute('aria-pressed', 'true');
+  await expect(map).toHaveAttribute('data-auto-resting', 'false', { timeout: 25000 });
+  await expect
+    .poll(async () => Number((await page.getByTestId('coins').innerText()).replaceAll(',', '')), {
+      timeout: 30000,
+    })
+    .toBeGreaterThan(60);
+  await page.getByTestId('hunt').click();
+  await expect(page.getByTestId('hunt')).toHaveAttribute('aria-pressed', 'false');
+  const coins = await page.getByTestId('coins').innerText();
+  await page.waitForTimeout(1500);
+  expect(await page.getByTestId('coins').innerText()).toBe(coins);
 });

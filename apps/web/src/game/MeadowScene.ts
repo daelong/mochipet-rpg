@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
-import { monsterById, petAsset, homeActivityById } from '@mochi/game-data';
+import { HUNTING_RULES, petAsset, homeActivityById } from '@mochi/game-data';
 import { maxHp, type GameEngine } from '@mochi/shared';
 import { useGame } from '../state/game';
+import { MonsterField } from './MonsterField';
+import { isPlayVisible } from '../pip/playSurface';
 import { drawHomeInterior } from './HomeInterior';
 import { activityShot } from './activityCamera';
 import { MealAnimation } from './MealAnimation';
@@ -14,15 +16,12 @@ const W = 1800,
   H = 1300;
 export class MeadowScene extends Phaser.Scene {
   private pet!: Phaser.GameObjects.Image;
-  private mob!: Phaser.GameObjects.Image;
   private bars!: Phaser.GameObjects.Graphics;
-  private label!: Phaser.GameObjects.Text;
+  private monsters!: MonsterField;
   private petLabel!: Phaser.GameObjects.Text;
-  private hpText!: Phaser.GameObjects.Text;
   private background!: Phaser.GameObjects.Graphics;
   private scenery!: Phaser.GameObjects.Container;
   private ground!: Phaser.GameObjects.Ellipse;
-  private mobGround!: Phaser.GameObjects.Ellipse;
   private destination!: Phaser.GameObjects.Arc;
   private cameraShotKey = '';
   private panGesture: (PanOrigin & { id: number; dragged: boolean }) | null = null;
@@ -30,7 +29,6 @@ export class MeadowScene extends Phaser.Scene {
   private careAnimation!: CareAnimation;
   private position = new Phaser.Math.Vector2(840, 690);
   private target = new Phaser.Math.Vector2(840, 690);
-  private enemyPosition = new Phaser.Math.Vector2(1020, 660);
   private age = 0;
   private wander = 0;
   private manual = false;
@@ -38,8 +36,7 @@ export class MeadowScene extends Phaser.Scene {
   private currentCharacter = '';
   private currentZone = '';
   private currentPlace = '';
-  private mobId = '';
-  private prevEnemy = false;
+  private enteredZone = '';
   private lastEngine: GameEngine | null = null;
   private loadingId = '';
   private effects: Phaser.GameObjects.Text[] = [];
@@ -63,7 +60,6 @@ export class MeadowScene extends Phaser.Scene {
     this.scenery = this.add.container(0, 0).setDepth(-50);
     this.drawLandscape(useGame.getState().engine.pet.zoneId);
     this.ground = this.add.ellipse(840, 690, 72, 20, 0x233b2a, 0.2);
-    this.mobGround = this.add.ellipse(1020, 660, 64, 18, 0x233b2a, 0.18).setVisible(false);
     this.destination = this.add.circle(0, 0, 15).setStrokeStyle(2, 0xfff1bd, 0.7).setVisible(false);
     this.pet = this.add
       .image(840, 650, `${useGame.getState().engine.pet.characterId}-idle-0`)
@@ -144,23 +140,15 @@ export class MeadowScene extends Phaser.Scene {
         this.destination.setPosition(this.target.x, this.target.y).setVisible(true);
       },
     );
-    this.mob = this.add.image(1020, 620, 'mob-slime').setDisplaySize(110, 110).setVisible(false);
+    this.monsters = new MonsterField(this);
     const textStyle = {
       fontFamily: 'system-ui',
       color: '#fff6dd',
       stroke: '#324d36',
       strokeThickness: 4,
     };
-    this.label = this.add
-      .text(0, 0, '', { ...textStyle, fontSize: '14px' })
-      .setOrigin(0.5)
-      .setDepth(3000);
     this.petLabel = this.add
       .text(0, 0, '', { ...textStyle, fontSize: '15px', fontStyle: 'bold' })
-      .setOrigin(0.5)
-      .setDepth(3000);
-    this.hpText = this.add
-      .text(0, 0, '', { ...textStyle, fontSize: '11px' })
       .setOrigin(0.5)
       .setDepth(3000);
     this.bars = this.add.graphics().setDepth(3000);
@@ -458,15 +446,18 @@ export class MeadowScene extends Phaser.Scene {
     if (this.lastEngine !== engine) {
       this.lastEngine = engine;
       this.lastEvent = 0;
-      this.prevEnemy = false;
       this.position.set(840, 690);
       this.target.copy(this.position);
       this.manual = false;
     }
-    if (this.currentPlace !== engine.place) {
+    if (
+      this.currentPlace !== engine.place ||
+      (engine.place === 'adventure' && this.enteredZone !== engine.pet.zoneId)
+    ) {
       this.endPan();
       useGame.setState({ cameraMode: 'follow' });
       this.currentPlace = engine.place;
+      this.enteredZone = engine.place === 'adventure' ? engine.pet.zoneId : '';
       this.position.set(engine.place === 'home' ? 900 : 840, engine.place === 'home' ? 960 : 690);
       this.target.copy(this.position);
       this.manual = false;
@@ -498,25 +489,18 @@ export class MeadowScene extends Phaser.Scene {
         this.load.start();
       }
     }
+    engine.selectNearestTarget(this.position);
     const enemy = engine.enemy;
-    if (enemy && !this.prevEnemy) {
-      const direction = this.position.x > 1100 ? -1 : 1;
-      this.enemyPosition.set(
-        Phaser.Math.Clamp(this.position.x + direction * 160, 500, 1300),
-        Phaser.Math.Clamp(this.position.y + Math.random() * 70 - 35, 440, 980),
-      );
-    }
-    this.prevEnemy = Boolean(enemy);
-    const canRun = state.access === 'ready' && !document.hidden && !engine.paused;
+    const canRun = state.access === 'ready' && isPlayVisible() && !engine.paused;
     let moving = false;
     if (canRun) {
       if (engine.homeActivity) {
         const activity = homeActivityById(engine.homeActivity.id)!;
         this.target.set(activity.x, activity.y);
         this.manual = false;
-      } else if (engine.hunting && enemy) {
-        const direction = this.position.x < this.enemyPosition.x ? -1 : 1;
-        this.target.set(this.enemyPosition.x + direction * 88, this.enemyPosition.y);
+      } else if (engine.hunting && !engine.autoResting && enemy) {
+        const direction = this.position.x < enemy.x ? -1 : 1;
+        this.target.set(enemy.x + direction * HUNTING_RULES.approachDistance, enemy.y);
         this.manual = false;
       } else if (['sleep', 'eat', 'play', 'happy'].includes(engine.action)) {
         this.target.copy(this.position);
@@ -548,7 +532,17 @@ export class MeadowScene extends Phaser.Scene {
         this.wander = 4;
       }
       if (engine.homeActivity && !moving) engine.arriveHomeActivity();
-      engine.step(dt, enemy !== null && this.position.distance(this.enemyPosition) <= 104);
+      engine.step(
+        dt,
+        enemy
+          ? {
+              uid: enemy.uid,
+              inRange:
+                Math.hypot(this.position.x - enemy.x, this.position.y - enemy.y) <=
+                HUNTING_RULES.attackRange,
+            }
+          : false,
+      );
       let animation =
         engine.action === 'attack'
           ? 'play'
@@ -629,27 +623,7 @@ export class MeadowScene extends Phaser.Scene {
     this.petLabel.setVisible(!focused);
     this.bars.setVisible(!focused);
     this.bars.clear();
-    this.mob.setVisible(Boolean(engine.enemy));
-    this.mobGround.setVisible(Boolean(engine.enemy));
-    this.label.setVisible(Boolean(engine.enemy));
-    this.hpText.setVisible(Boolean(engine.enemy));
-    if (engine.enemy) {
-      const m = engine.enemy,
-        x = this.enemyPosition.x,
-        y = this.enemyPosition.y;
-      if (this.mobId !== m.id) {
-        this.mobId = m.id;
-        this.mob.setTexture(`mob-${m.id}`);
-      }
-      this.mob.setPosition(x, y - 36 + Math.sin(this.age * 3) * 2).setDepth(y);
-      this.mobGround.setPosition(x, y + 4).setDepth(y - 1);
-      this.label.setText(monsterById(m.id).name).setPosition(x, y - 106);
-      this.hpText.setText(`${m.hp} / ${m.maxHp}`).setPosition(x, y - 71);
-      this.bars.fillStyle(0x243e30, 0.6).fillRoundedRect(x - 42, y - 90, 84, 6, 3);
-      this.bars
-        .fillStyle(0xe6a38c)
-        .fillRoundedRect(x - 42, y - 90, Math.max(1, (84 * m.hp) / m.maxHp), 6, 3);
-    }
+    this.monsters.render(engine.enemies, engine.targetUid, this.age);
     this.bars
       .fillStyle(0x243e30, 0.5)
       .fillRoundedRect(this.position.x - 32, this.position.y + 11, 64, 4, 2);
@@ -666,7 +640,7 @@ export class MeadowScene extends Phaser.Scene {
       if (event.id <= this.lastEvent) continue;
       this.lastEvent = event.id;
       if (!['damage', 'hurt', 'reward', 'level', 'skill', 'care'].includes(event.kind)) continue;
-      const target = event.target === 'monster' ? this.enemyPosition : this.position;
+      const target = event.target === 'monster' && event.position ? event.position : this.position;
       const color =
         event.kind === 'hurt' ? '#ffc3ad' : event.kind === 'damage' ? '#fff0d0' : '#f6e99b';
       const text =
@@ -696,10 +670,23 @@ export class MeadowScene extends Phaser.Scene {
           this.effects = this.effects.filter((f) => f !== float);
         },
       });
-      if (event.kind === 'damage' || event.kind === 'hurt') {
-        const image = event.kind === 'damage' ? this.mob : this.pet;
-        image.setTint(0xffbbbb);
-        this.time.delayedCall(130, () => image?.clearTint());
+      if (event.kind === 'damage' && event.enemyUid !== undefined)
+        this.monsters.flash(event.enemyUid);
+      if (event.kind === 'hurt') {
+        this.pet.setTint(0xffbbbb);
+        this.time.delayedCall(130, () => this.pet?.clearTint());
+      }
+      if (event.kind === 'reward' && event.position) {
+        const puff = this.add
+          .circle(event.position.x, event.position.y - 25, 28, 0xf3dc8c, 0.4)
+          .setDepth(2500);
+        this.tweens.add({
+          targets: puff,
+          scale: 1.8,
+          alpha: 0,
+          duration: 500,
+          onComplete: () => puff.destroy(),
+        });
       }
       if (event.kind === 'skill') {
         const ring = this.add
@@ -730,6 +717,7 @@ export function makeGame(parent: HTMLDivElement, onReady: () => void) {
     fps: { target: 30, limit: 30 },
     audio: { noAudio: true },
     banner: false,
+    autoFocus: false,
     callbacks: {
       preBoot: (game) => {
         game.events.once('mochi-scene-ready', onReady);

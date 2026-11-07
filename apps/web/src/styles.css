@@ -1816,3 +1816,106 @@ small {
     animation: none !important;
   }
 }
+
+/* Keep transient hunting notices away from the field exit and bottom hints. */
+.game-shell[data-place='adventure'] .feedback {
+  top: 126px;
+  bottom: auto;
+}
+@media (max-width: 850px) {
+  .game-shell[data-place='adventure'] .feedback {
+    top: 156px;
+  }
+}
+
+.mini-placeholder {
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px;
+  text-align: center;
+  background: #294830;
+}
+.mini-placeholder p {
+  max-width: 440px;
+  color: #d5dfc4;
+}
+.mini-toolbar {
+  position: absolute;
+  z-index: 4;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  border-radius: 16px;
+  padding: 8px;
+}
+.mini-toolbar button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  background: #dce8b91a;
+  border-radius: 10px;
+  font-size: 10px;
+}
+#root[data-mini-window='true'] .game-shell {
+  min-width: 320px;
+}
+#root[data-mini-window='true'] .action-rail,
+#root[data-mini-window='true'] .menu-rail,
+#root[data-mini-window='true'] .world-hint {
+  display: none;
+}
+#root[data-mini-window='true'] .game-meta {
+  bottom: 136px;
+  left: 12px;
+  right: 12px;
+  justify-content: center;
+  z-index: 3;
+}
+#root[data-mini-window='true'] .game-meta > :not(.camera-return) {
+  display: none;
+}
+#root[data-mini-window='true'] [data-place='home'] .game-meta {
+  bottom: 230px;
+}
+#root[data-mini-window='true'] .yard-return {
+  bottom: 92px;
+}
+#root[data-mini-window='true'] .side-panel {
+  top: 135px;
+  bottom: 96px;
+  left: 12px;
+  right: 12px;
+  width: auto;
+}
+#root[data-mini-window='true'] .home-dock {
+  bottom: 100px;
+}
+#root[data-mini-window='true'] .home-progress {
+  bottom: 96px;
+  left: 12px;
+  width: calc(100% - 24px);
+  transform: none;
+}
+#root[data-mini-window='true'] .home-needs {
+  top: 148px;
+}
+#root[data-mini-window='true'] .activity-broadcast .broadcast-caption {
+  bottom: 180px;
+}
+#root[data-mini-window='true'] .feedback {
+  top: 156px;
+  bottom: auto;
+}
+#root[data-mini-window='true'] .scene-loading {
+  z-index: 7;
+}

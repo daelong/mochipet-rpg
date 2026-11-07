@@ -21,7 +21,17 @@ MOCHI_E2E_PRODUCTION=1 pnpm test:e2e
 
 `pnpm build`는 리소스 경로 검사 → 웹 CSV 일치 검사 → 전체 TypeScript 타입 검사 → Vite 빌드를 수행합니다. CSV는 `pnpm catalogs`로 생성하고 `pnpm catalogs:check`로 확인합니다. 데이터 변경 시 집 안 활동을 포함한 6종의 `web-*.csv`도 함께 갱신하세요. `pnpm format`은 웹 소스의 서식만 정리합니다.
 
+사냥터 변경 검사는 `pnpm test:e2e --grep "separate field|automatic recovery|zone and character|level 20"`로 실행할 수 있습니다. 사냥터 입장 시 생성 5마리·무작위 위치·자동 보상·OFF 후 보상 중단·마당 복귀·회복 후 재개를 확인합니다. 몬스터 인스턴스와 위치는 재접속 후 이어지지 않습니다. 저장 스키마 v2와 기존 v1 이전 경로는 유지했습니다.
+
 Phaser가 프레임마다 좌표를 관리하고 공통 규칙 엔진을 호출합니다. Zustand는 상태 변화가 있을 때, 전투 중 최대 초당 5회 스냅샷을 UI로 전달합니다. 좌표는 React에 저장하지 않습니다. 탭 비활성화·재접속의 경과 시간을 보상으로 환산하지 않으며, 사냥은 재접속 시 OFF입니다.
+
+미니 창은 **설정 → 미니 펫 창 · PiP → 미니 창 열기**에서 엽니다. HTTPS/localhost의 최상위 문서와 Document PiP API 지원이 필요합니다. 같은 React 루트·Phaser 캔버스를 이동하고 PiP 문서의 프레임 콜백으로 진행하므로 게임·세션 잠금을 두 번 시작하지 않습니다. 창의 크기와 위치는 브라우저가 결정하며 420×600은 요청 크기입니다. 보이는 PiP 창이 있으면 본 탭이 숨겨져도 진행하고, 현재 플레이 문서도 숨겨지면 멈춥니다. 본 탭 종료·브라우저 절전 이후의 경과 보상은 없습니다.
+
+```sh
+MOCHI_E2E_PRODUCTION=1 pnpm test:e2e apps/web/tests/mini-window.spec.ts
+```
+
+PiP 검사는 PC Chromium의 실제 API로 입력·크기 변경·원래 캔버스 복귀를 확인하고, 모바일에서는 native PiP 사례를 건너뜁니다. 미지원·열기 거부 처리는 PC/모바일 크기에서 별도로 검사합니다. 자동화 환경에서 본 탭의 `document.hidden`이 계속 false인 경우가 있어, 숨겨진 본 탭/보이는 PiP의 분기는 `phaserSurface.test.ts`에서 별도로 검사합니다. 다른 OS의 최상단 표시·실제 모바일·장시간 절전은 추가 검증이 필요합니다.
 
 브라우저 저장 키는 `mochipet.web.v1`, `.previous`, `.damaged`, `.before-reset`입니다. 웹 테스트는 격리된 임시 브라우저 컨텍스트를 사용합니다. 실제 플레이 기록은 저장소 파일로 만들지 않습니다. 초기화는 사용자 확인 후 원본 백업 기록을 먼저 쓴 다음 진행합니다. 저장 공간 부족·브라우저 데이터 삭제·전원 손실까지 완전한 보관을 보장하지 않습니다.
 

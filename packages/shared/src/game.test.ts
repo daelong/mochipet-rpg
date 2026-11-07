@@ -39,10 +39,13 @@ describe('offline simulation', () => {
     const g = new GameEngine();
     expect(g.toggleHunt().ok).toBe(false);
     g.choose('z_rabbit');
+    expect(g.toggleHunt().ok).toBe(false);
+    g.setZone('meadow');
     expect(g.toggleHunt().ok).toBe(true);
   });
   it('does not hit or award from out of range', () => {
     const g = new GameEngine(chosen(), () => 0);
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 30, false);
     expect(g.enemy?.hp).toBe(28);
@@ -51,6 +54,7 @@ describe('offline simulation', () => {
   });
   it('attacks, casts skills, and grants one reward per kill', () => {
     const g = new GameEngine(chosen(), () => 0);
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 1.2);
     expect(g.pet.kills).toBe(1);
@@ -60,24 +64,38 @@ describe('offline simulation', () => {
     advance(g, 0.5);
     expect(g.pet.kills).toBe(1);
   });
-  it('a stopped hunt removes its enemy and cannot give rewards', () => {
+  it('a stopped hunt preserves field monsters without granting rewards', () => {
     const g = new GameEngine(chosen());
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 1, false);
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 20);
     expect(g.enemy).toBeNull();
+    expect(g.enemies).toHaveLength(5);
     expect(g.pet.kills).toBe(0);
   });
-  it('stops at low HP and recovers while resting', () => {
-    const g = new GameEngine(chosen({ hp: 16, characterId: 'z_rat' }), () => 0);
+  it('automatically rests at low HP and resumes the same hunt after recovery', () => {
+    const g = new GameEngine(chosen(), () => 0);
+    g.setZone('meadow');
     g.toggleHunt();
-    advance(g, 20);
-    expect(g.hunting).toBe(false);
-    expect(g.pet.hp).toBeGreaterThan(15);
+    g.pet.hp = 10;
+    advance(g, 0.2);
+    expect(g.hunting).toBe(true);
+    expect(g.autoResting).toBe(true);
+    expect(g.enemy).toBeNull();
+    advance(g, 8);
+    expect(g.pet.hp).toBeGreaterThan(10);
+    expect(g.pet.kills).toBe(0);
+    advance(g, 16);
+    expect(g.autoResting).toBe(false);
+    expect(g.hunting).toBe(true);
+    expect(g.pet.kills).toBeGreaterThan(0);
   });
   it('manual rest cancels hunting and restores HP and energy', () => {
     const g = new GameEngine(chosen({ hp: 35, energy: 15 }));
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     g.care('rest');
     advance(g, 10);
@@ -87,17 +105,20 @@ describe('offline simulation', () => {
   });
   it('pauses progress and caps long frames so no implicit away reward', () => {
     const g = new GameEngine(chosen());
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     g.pause(true);
     advance(g, 2000);
     expect(g.pet.kills).toBe(0);
     g.pause(false);
     g.step(86400, true);
-    expect(g.enemy).toBeNull();
+    expect(g.pet.kills).toBe(0);
+    expect(g.snapshot().events.filter((e) => e.kind === 'damage').length).toBeLessThanOrEqual(1);
   });
   it('levels up, restores HP and unlocks level gated zones', () => {
     const g = new GameEngine(chosen({ level: 2, xp: xpForLevel(2) - 1 }), () => 0);
     expect(g.setZone('forest').ok).toBe(false);
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 1.2);
     expect(g.pet.level).toBe(3);
@@ -106,6 +127,7 @@ describe('offline simulation', () => {
   });
   it('never grows beyond 20 or accumulates XP at 20, while coins remain usable', () => {
     const g = new GameEngine(chosen({ level: 19, xp: xpForLevel(19) - 1 }), () => 0);
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 30);
     expect(g.pet.level).toBe(MAX_LEVEL);
@@ -118,12 +140,14 @@ describe('offline simulation', () => {
       chosen({ characterId: 'z_snake', level: 5, hp: 80, zoneId: 'cave' }),
       () => 0,
     );
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 5);
     expect(g.snapshot().events.some((e) => e.message.startsWith('중독'))).toBe(true);
   });
   it('healing skill restores HP instead of being a renamed attack', () => {
     const g = new GameEngine(chosen({ characterId: 'z_sheep', hp: 35 }), () => 0);
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 1.2);
     expect(g.pet.hp).toBeGreaterThan(35);
@@ -136,6 +160,7 @@ describe('offline simulation', () => {
       chosen({ coins: 1000000, attackBonus: 100, defenseBonus: 50 }),
       () => 0,
     );
+    g.setZone(g.pet.zoneId);
     g.toggleHunt();
     advance(g, 1800);
     expect(() => parsePet(g.pet)).not.toThrow();

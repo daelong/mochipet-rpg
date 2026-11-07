@@ -133,6 +133,16 @@ export const MONSTERS: readonly Monster[] = [
   { id: 'ghost', name: '달빛 유령', hp: 165, attack: 17, xp: 65, coins: 40 },
   { id: 'moon', name: '그림자 달', hp: 185, attack: 19, xp: 75, coins: 46 },
 ];
+export const HUNTING_RULES = {
+  maxMonsters: 5,
+  respawnSeconds: 2.5,
+  minSpacing: 150,
+  bounds: { minX: 500, maxX: 1320, minY: 440, maxY: 980 },
+  attackRange: 104,
+  approachDistance: 88,
+  recoverHpRatio: 0.75,
+  recoverEnergy: 30,
+} as const;
 export const ZONES = [
   {
     id: 'meadow',

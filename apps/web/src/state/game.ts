@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { GameEngine, defaults, type Snapshot } from '@mochi/shared';
 import { SaveRepository } from './storage';
+import { getPlayWindow, isPlayVisible, subscribeSurface } from '../pip/playSurface';
+import { closeMiniWindow } from '../pip/miniWindow';
 type Access = 'loading' | 'ready' | 'blocked' | 'readonly';
 interface GameStore {
   engine: GameEngine;
@@ -132,15 +134,32 @@ export function startSession(): () => void {
       });
   const onHidden = () => {
     const { engine, access } = useGame.getState();
-    engine.pause(document.hidden || access !== 'ready');
+    engine.pause(!isPlayVisible() || access !== 'ready');
     if (document.hidden) saveNow();
   };
-  const onPageHide = () => saveNow();
+  let visibleWindow: Window = window;
+  const observeSurface = () => {
+    if (visibleWindow !== window)
+      visibleWindow.document.removeEventListener('visibilitychange', onHidden);
+    visibleWindow = getPlayWindow();
+    if (visibleWindow !== window)
+      visibleWindow.document.addEventListener('visibilitychange', onHidden);
+    onHidden();
+  };
+  const unsubscribeSurface = subscribeSurface(observeSurface);
+  const onPageHide = () => {
+    saveNow();
+    closeMiniWindow();
+  };
   document.addEventListener('visibilitychange', onHidden);
   window.addEventListener('pagehide', onPageHide);
   const timer = window.setInterval(saveNow, 10000);
   return () => {
     cancelled = true;
+    closeMiniWindow();
+    unsubscribeSurface();
+    if (visibleWindow !== window)
+      visibleWindow.document.removeEventListener('visibilitychange', onHidden);
     saveNow();
     ownsLock = false;
     release?.();

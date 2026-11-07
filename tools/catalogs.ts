@@ -6,6 +6,7 @@ import {
   SHOP,
   ZONES,
   HOME_ACTIVITIES,
+  HUNTING_RULES,
 } from '../packages/game-data/src/index';
 function csv(rows: Record<string, unknown>[]) {
   const keys = Object.keys(rows[0]);
@@ -36,6 +37,8 @@ const catalogs = {
     name: z.name,
     unlock_level: z.level,
     monster_ids: z.monsters.join(';'),
+    max_monsters: HUNTING_RULES.maxMonsters,
+    respawn_seconds: HUNTING_RULES.respawnSeconds,
   })),
   'web-shop.csv': SHOP.map((i) => ({ ...i })),
   'web-home-activities.csv': HOME_ACTIVITIES.map((a) => ({

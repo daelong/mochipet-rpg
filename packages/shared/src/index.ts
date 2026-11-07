@@ -1,6 +1,9 @@
 import { z } from 'zod';
+import { nearestEnemy, spawnPosition, type Point } from './hunting';
+export { nearestEnemy, spawnPosition } from './hunting';
 import {
   CHARACTERS,
+  HUNTING_RULES,
   SHOP,
   ZONES,
   characterById,
@@ -128,7 +131,8 @@ export function parsePet(raw: unknown): Pet {
   return p;
 }
 export type Action = 'idle' | 'walk' | 'attack' | 'sleep' | 'eat' | 'play' | 'happy';
-export interface Enemy {
+export interface Enemy extends Point {
+  uid: number;
   id: string;
   hp: number;
   maxHp: number;
@@ -140,12 +144,17 @@ export interface GameEvent {
   message: string;
   amount?: number;
   target?: 'pet' | 'monster';
+  position?: Point;
+  enemyUid?: number;
 }
 export interface Snapshot {
   pet: Pet;
   hunting: boolean;
   action: Action;
   enemy: Enemy | null;
+  enemies: Enemy[];
+  autoResting: boolean;
+  targetUid: number | null;
   skillCooldown: number;
   events: GameEvent[];
   paused: boolean;
@@ -164,17 +173,22 @@ export class GameEngine {
   pet: Pet;
   hunting = false;
   action: Action = 'idle';
-  enemy: Enemy | null = null;
+  enemies: Enemy[] = [];
+  targetUid: number | null = null;
+  autoResting = false;
+  private nextEnemyUid = 0;
+  private enemyTimers = new Map<number, { attack: number; poison: number }>();
+  get enemy(): Enemy | null {
+    return this.enemies.find((e) => e.uid === this.targetUid) ?? null;
+  }
   paused = false;
   skillCooldown = 0;
   place: Place = 'yard';
   homeActivity: HomeActivityState | null = null;
   private attackCooldown = 0;
-  private enemyCooldown = 0;
   private spawnCooldown = 0.5;
   private decay = 0;
   private healClock = 0;
-  private poisonClock = 0;
   private actionClock = 0;
   private guard = 0;
   private eventId = 0;
@@ -199,6 +213,9 @@ export class GameEngine {
     hunting: this.hunting,
     action: this.action,
     enemy: this.enemy ? { ...this.enemy } : null,
+    enemies: this.enemies.map((e) => ({ ...e })),
+    autoResting: this.autoResting,
+    targetUid: this.targetUid,
     skillCooldown: Math.ceil(this.skillCooldown),
     events: [...this.events],
     paused: this.paused,
@@ -214,10 +231,18 @@ export class GameEngine {
     message: string,
     amount?: number,
     target?: GameEvent['target'],
+    enemy?: Enemy,
   ) {
     this.events = [
       ...this.events.slice(-11),
-      { id: ++this.eventId, kind, message, amount, target },
+      {
+        id: ++this.eventId,
+        kind,
+        message,
+        amount,
+        target,
+        ...(enemy ? { position: { x: enemy.x, y: enemy.y }, enemyUid: enemy.uid } : {}),
+      },
     ];
     this.changed = true;
   }
@@ -250,36 +275,88 @@ export class GameEngine {
     const z = ZONES.find((z) => z.id === id);
     if (!z || this.pet.level < z.level)
       return this.notice('아직 입장할 수 없는 사냥터예요.', false);
+    if (!this.pet.chosen) return this.notice('먼저 함께할 친구를 선택해 주세요.', false);
     if (this.homeActivity) return this.notice('집에서 하던 활동을 마치거나 취소해 주세요.', false);
+    if (this.place === 'adventure' && this.pet.zoneId === z.id)
+      return this.notice(`이미 ${z.name}에 있어요. 자동사냥을 켜 보세요.`);
+    this.stopHunt();
+    this.clearEnemies();
     this.place = 'adventure';
     this.pet.zoneId = z.id;
-    this.enemy = null;
-    this.spawnCooldown = 0.8;
-    return this.notice(`${z.name}에 도착했어요.`);
+    this.fillEnemies();
+    return this.notice(`${z.name} 입장! 자동사냥을 켜면 가까운 몬스터를 찾아가요.`);
+  }
+  private clearEnemies() {
+    this.enemies = [];
+    this.enemyTimers.clear();
+    this.targetUid = null;
+    this.spawnCooldown = HUNTING_RULES.respawnSeconds;
+  }
+  private spawnEnemy() {
+    const zone = ZONES.find((z) => z.id === this.pet.zoneId)!;
+    const id =
+      zone.monsters[
+        Math.min(
+          zone.monsters.length - 1,
+          Math.floor(Math.max(0, this.random()) * zone.monsters.length),
+        )
+      ];
+    const m = monsterById(id);
+    const enemy: Enemy = {
+      id,
+      uid: ++this.nextEnemyUid,
+      hp: m.hp,
+      maxHp: m.hp,
+      poisonTicks: 0,
+      ...spawnPosition(this.enemies, this.random),
+    };
+    this.enemies.push(enemy);
+    this.enemyTimers.set(enemy.uid, { attack: 1.5, poison: 0 });
+    this.changed = true;
+  }
+  private fillEnemies() {
+    while (this.enemies.length < HUNTING_RULES.maxMonsters) this.spawnEnemy();
+    this.spawnCooldown = HUNTING_RULES.respawnSeconds;
   }
   stopHunt() {
     this.hunting = false;
-    this.enemy = null;
+    this.autoResting = false;
+    this.targetUid = null;
     this.action = 'idle';
-    this.attackCooldown = 0;
-    this.enemyCooldown = 0;
+    this.attackCooldown = 0.2;
     this.guard = 0;
+    for (const enemy of this.enemies) {
+      enemy.poisonTicks = 0;
+      this.enemyTimers.set(enemy.uid, { attack: 1.5, poison: 0 });
+    }
   }
   toggleHunt(): Result {
     if (this.hunting) {
       this.stopHunt();
-      return this.notice('사냥을 멈추고 산책해요.');
+      return this.notice('자동사냥을 멈췄어요. 사냥터를 자유롭게 둘러보세요.');
     }
     if (!this.pet.chosen) return this.notice('먼저 함께할 친구를 선택해 주세요.', false);
     if (this.homeActivity) return this.notice('집에서 하던 활동을 마치거나 취소해 주세요.', false);
-    if (this.pet.hp <= Math.floor(maxHp(this.pet) * 0.25) || this.pet.energy < 10)
-      return this.notice('조금 더 쉬고 사냥해요. HP와 체력이 필요해요.', false);
+    if (this.place !== 'adventure')
+      return this.notice('사냥터를 선택해 입장한 뒤 자동사냥을 켜 주세요.', false);
     this.hunting = true;
-    this.place = 'adventure';
     this.actionClock = 0;
-    this.spawnCooldown = 0.5;
     this.action = 'walk';
-    return this.notice('작은 모험을 시작해요!');
+    this.attackCooldown = 0.2;
+    this.targetUid = null;
+    this.autoResting = this.pet.hp <= Math.floor(maxHp(this.pet) * 0.25) || this.pet.energy < 10;
+    if (this.autoResting) this.action = 'sleep';
+    return this.notice(
+      this.autoResting
+        ? '먼저 쉬고 있어요. 충분히 회복하면 자동사냥을 시작해요.'
+        : '자동사냥 시작! 가까운 몬스터를 차례로 찾아가요.',
+    );
+  }
+  selectNearestTarget(origin: Point) {
+    if (!this.hunting || this.autoResting || this.place !== 'adventure') return;
+    if (this.enemy) return; // Finish the current target before moving to another one.
+    this.targetUid = nearestEnemy(this.enemies, origin)?.uid ?? null;
+    this.changed = true;
   }
   pause(value: boolean) {
     this.paused = value;
@@ -362,7 +439,9 @@ export class GameEngine {
       return this.notice('갈 수 없는 곳이에요.', false);
     this.homeActivity = null;
     this.actionClock = 0;
+    if (place === 'adventure') return this.setZone(this.pet.zoneId);
     this.stopHunt();
+    this.clearEnemies();
     this.place = place;
     return this.notice(
       place === 'home'
@@ -432,7 +511,7 @@ export class GameEngine {
     this.event('care', `${activity.name} 완료!`);
     this.emit();
   }
-  step(seconds: number, inRange: boolean) {
+  step(seconds: number, engagement: boolean | { uid: number; inRange: boolean }) {
     if (this.paused || !this.pet.chosen) return;
     const dt = Math.min(0.1, Math.max(0, seconds));
     if (!Number.isFinite(dt) || dt === 0) return;
@@ -459,10 +538,28 @@ export class GameEngine {
         this.pet.roomCleanliness = Math.max(0, this.pet.roomCleanliness - 1);
       if (this.pet.hygiene <= 30 || this.pet.roomCleanliness <= 30 || this.pet.toilet >= 80)
         this.pet.happiness = Math.max(0, this.pet.happiness - 1);
-      if (this.hunting) this.pet.energy = Math.max(0, this.pet.energy - 2);
+      if (this.hunting && !this.autoResting) this.pet.energy = Math.max(0, this.pet.energy - 2);
       this.changed = true;
     }
-    if (!this.hunting) {
+    if (this.place === 'adventure' && this.enemies.length < HUNTING_RULES.maxMonsters) {
+      this.spawnCooldown -= dt;
+      if (this.spawnCooldown <= 0) {
+        this.spawnEnemy();
+        this.spawnCooldown = HUNTING_RULES.respawnSeconds;
+      }
+    }
+    if (
+      this.hunting &&
+      !this.autoResting &&
+      (this.pet.hp <= Math.floor(maxHp(this.pet) * 0.25) || this.pet.energy < 5)
+    ) {
+      this.autoResting = true;
+      this.targetUid = null;
+      this.action = 'sleep';
+      this.healClock = 0;
+      this.event('notice', 'HP나 체력이 부족해요. 쉬고 난 뒤 자동으로 사냥을 이어가요.');
+    }
+    if (!this.hunting || this.autoResting) {
       if (this.homeActivity) this.healClock = 0;
       if (!this.homeActivity && this.healClock >= 2) {
         this.healClock = 0;
@@ -471,6 +568,16 @@ export class GameEngine {
         this.changed = true;
       }
       if (
+        this.autoResting &&
+        this.pet.hp >= Math.ceil(maxHp(this.pet) * HUNTING_RULES.recoverHpRatio) &&
+        this.pet.energy >= HUNTING_RULES.recoverEnergy
+      ) {
+        this.autoResting = false;
+        this.action = 'walk';
+        this.attackCooldown = 0.2;
+        this.event('notice', '충분히 쉬었어요. 자동사냥을 다시 시작해요!');
+      } else if (
+        !this.autoResting &&
         !this.homeActivity &&
         this.actionClock === 0 &&
         this.action !== 'walk' &&
@@ -481,68 +588,55 @@ export class GameEngine {
       }
     } else {
       this.healClock = 0;
-      if (this.pet.hp <= Math.floor(maxHp(this.pet) * 0.25) || this.pet.energy < 5) {
-        this.stopHunt();
-        this.action = 'sleep';
-        this.actionClock = 15;
-        this.event('notice', 'HP나 체력이 부족해요. 사냥을 멈추고 쉬어요.');
-      } else if (!this.enemy) {
-        this.spawnCooldown -= dt;
-        if (this.spawnCooldown <= 0) {
-          const zone = ZONES.find((z) => z.id === this.pet.zoneId)!;
-          const id =
-            zone.monsters[
-              Math.min(
-                zone.monsters.length - 1,
-                Math.floor(Math.max(0, this.random()) * zone.monsters.length),
-              )
-            ];
-          const m = monsterById(id);
-          this.enemy = { id, hp: m.hp, maxHp: m.hp, poisonTicks: 0 };
-          this.attackCooldown = 0.2;
-          this.enemyCooldown = 1.5;
-          this.poisonClock = 0;
-          this.changed = true;
+      this.attackCooldown -= dt;
+      // The scene supplies the exact instance it measured. A kill cannot redirect a stale range check.
+      if (typeof engagement === 'boolean' && !this.enemy)
+        this.targetUid = this.enemies[0]?.uid ?? null;
+      const measuredUid = typeof engagement === 'boolean' ? this.targetUid : engagement.uid;
+      const inRange = typeof engagement === 'boolean' ? engagement : engagement.inRange;
+      for (const enemy of [...this.enemies]) {
+        const timers = this.enemyTimers.get(enemy.uid)!;
+        timers.attack -= dt;
+        timers.poison += dt;
+        if (enemy.poisonTicks > 0 && timers.poison >= 1) {
+          timers.poison = 0;
+          enemy.poisonTicks--;
+          this.hit(enemy, 3 + this.pet.skillRank, '중독');
         }
-      } else {
-        this.action = inRange ? 'attack' : 'walk';
-        this.attackCooldown -= dt;
-        this.enemyCooldown -= dt;
-        this.poisonClock += dt;
-        if (this.enemy.poisonTicks > 0 && this.poisonClock >= 1) {
-          this.poisonClock = 0;
-          this.enemy.poisonTicks--;
-          this.hit(3 + this.pet.skillRank, '중독');
+      }
+      const target = this.enemy;
+      this.action = target && inRange && measuredUid === target.uid ? 'attack' : 'walk';
+      if (target && inRange && measuredUid === target.uid) {
+        if (this.attackCooldown <= 0) {
+          this.attackCooldown = Math.max(0.45, 1.15 - agility(this.pet) * 0.025);
+          this.hit(target, attack(this.pet), '공격');
         }
-        if (this.enemy && inRange) {
-          if (this.attackCooldown <= 0) {
-            this.attackCooldown = Math.max(0.45, 1.15 - agility(this.pet) * 0.025);
-            this.hit(attack(this.pet), '공격');
-          }
-          if (this.enemy && this.skillCooldown <= 0) {
-            const skill = skillById(characterById(this.pet.characterId)!.skillId)!;
-            this.skillCooldown = skill.cooldown;
-            const power = skill.power + this.pet.skillRank * 3;
-            this.event('skill', skill.name, undefined, 'pet');
-            if (skill.effect === 'heal') {
-              const amount = Math.min(maxHp(this.pet) - this.pet.hp, power);
-              this.pet.hp += amount;
-              this.event('care', `HP +${amount}`, amount, 'pet');
-            } else {
-              if (skill.effect === 'poison') this.enemy.poisonTicks = 3;
-              if (skill.effect === 'guard') this.guard = 3;
-              this.hit(power, skill.name);
+        if (this.enemy === target && this.skillCooldown <= 0) {
+          const skill = skillById(characterById(this.pet.characterId)!.skillId)!;
+          this.skillCooldown = skill.cooldown;
+          const power = skill.power + this.pet.skillRank * 3;
+          this.event('skill', skill.name, undefined, 'pet');
+          if (skill.effect === 'heal') {
+            const amount = Math.min(maxHp(this.pet) - this.pet.hp, power);
+            this.pet.hp += amount;
+            this.event('care', `HP +${amount}`, amount, 'pet');
+          } else {
+            if (skill.effect === 'poison') {
+              target.poisonTicks = 3;
+              this.enemyTimers.get(target.uid)!.poison = 0;
             }
+            if (skill.effect === 'guard') this.guard = 3;
+            this.hit(target, power, skill.name);
           }
-          if (this.enemy && this.enemyCooldown <= 0) {
-            this.enemyCooldown = 1.6;
-            const damage = Math.max(
-              1,
-              monsterById(this.enemy.id).attack - defense(this.pet) - (this.guard > 0 ? 3 : 0),
-            );
-            this.pet.hp = Math.max(0, this.pet.hp - damage);
-            this.event('hurt', `피해 ${damage}`, damage, 'pet');
-          }
+        }
+        if (this.enemy === target && this.enemyTimers.get(target.uid)!.attack <= 0) {
+          this.enemyTimers.get(target.uid)!.attack = 1.6;
+          const damage = Math.max(
+            1,
+            monsterById(target.id).attack - defense(this.pet) - (this.guard > 0 ? 3 : 0),
+          );
+          this.pet.hp = Math.max(0, this.pet.hp - damage);
+          this.event('hurt', `피해 ${damage}`, damage, 'pet');
         }
       }
     }
@@ -551,25 +645,29 @@ export class GameEngine {
       this.emit();
     }
   }
-  private hit(amount: number, label: string) {
-    if (!this.enemy) return;
-    this.enemy.hp = Math.max(0, this.enemy.hp - amount);
-    this.event('damage', `${label} ${amount}`, amount, 'monster');
-    if (this.enemy.hp === 0) {
-      const m = monsterById(this.enemy.id);
-      this.reward(m);
-      this.enemy = null;
-      this.spawnCooldown = 1.8;
+  private hit(enemy: Enemy, amount: number, label: string) {
+    if (!this.enemies.includes(enemy) || enemy.hp <= 0) return;
+    enemy.hp = Math.max(0, enemy.hp - amount);
+    this.event('damage', `${label} ${amount}`, amount, 'monster', enemy);
+    if (enemy.hp === 0) {
+      this.reward(monsterById(enemy.id), enemy);
+      const wasFull = this.enemies.length === HUNTING_RULES.maxMonsters;
+      this.enemies = this.enemies.filter((e) => e.uid !== enemy.uid);
+      this.enemyTimers.delete(enemy.uid);
+      if (this.targetUid === enemy.uid) this.targetUid = null;
+      if (wasFull) this.spawnCooldown = HUNTING_RULES.respawnSeconds;
       this.action = 'happy';
     }
   }
-  private reward(m: Monster) {
+  private reward(m: Monster, enemy: Enemy) {
     this.pet.coins = Math.min(1000000, this.pet.coins + m.coins);
     this.pet.kills = Math.min(1000000, this.pet.kills + 1);
     this.event(
       'reward',
       `+${m.coins} 코인${this.pet.level < MAX_LEVEL ? ` · +${m.xp} XP` : ''}`,
       m.coins,
+      'monster',
+      enemy,
     );
     if (this.pet.level === MAX_LEVEL) return;
     this.pet.xp += m.xp;
